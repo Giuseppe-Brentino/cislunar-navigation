@@ -27,7 +27,7 @@ dates =  cspice_str2et( char(epoch ) );
 rotate = cspice_sxform( 'J2000', 'MOON_PA', dates );
 
 eul.type = "ZXZ";
-eul.value = rotm2eul(rotate(1:3,1:3,:),eul.type);
+[eul.value(:,3), eul.value(:,2), eul.value(:,1)] = dcm2angle(rotate(1:3,1:3,:),eul.type);
 eul.unit = 'rad';
 eul.description = 'ZXZ rotation angles from J2000 to MOON_PA';
 eul_dot.unit = 'rad/s';
