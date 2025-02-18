@@ -1,4 +1,4 @@
-function updateParameters(dict_name, param, value)
+function updateParameters(dict_name, param, value, varargin)
 
 % Open or create a Simulink data dictionary
 dictionary = Simulink.data.dictionary.open(dict_name);
@@ -12,3 +12,7 @@ for i= 1:length(param)
 end
 
 saveChanges(dictionary)
+
+if nargin==3
+    propagateParameters();
+end
