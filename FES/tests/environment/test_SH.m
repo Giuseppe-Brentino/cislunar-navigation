@@ -16,7 +16,7 @@ classdef test_SH < matlab.unittest.TestCase
 
             [actual_g,~,~] = fun.getGravity(position);
             expected_g = [-8.44260633555472;-1.23393243051834; -4.84652486332608];
-            verifyEqual(testCase,actual_g,expected_g,'RelTol',1e-6)
+            verifyEqual(testCase,actual_g,expected_g,'RelTol',1e-10)
 
         end
     end
