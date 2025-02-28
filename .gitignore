@@ -1,3 +1,5 @@
 **/*.asv
 **/slprj/**
 **/*.slxc
+**/mice/**
+FES/utils/initial conditions/LumioKernel.bsp
