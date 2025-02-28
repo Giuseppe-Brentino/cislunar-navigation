@@ -38,5 +38,9 @@ Environment.Moon.SH.Snm.value = Snm;
 
 % Update the dictionary with the modified 'Environment' and 'TestData' fields
 updateParameters('Scenario.sldd',{'Environment','TestData'},{Environment,TestData},true);
+
+% Update initial states of the satellites
+initialStates();
+
 end
 

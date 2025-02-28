@@ -47,6 +47,10 @@ rotate = cspice_sxform( 'J2000', 'MOON_PA', dates );
 % Initialize output structure for Euler angles (ZXZ)
 eul.type = "ZXZ";
 [eul.value(:,3), eul.value(:,2), eul.value(:,1)] = dcm2angle(rotate(1:3,1:3,:),eul.type);
+eul.value(:,1) = unwrap(eul.value(:,1));
+eul.value(:,2) = unwrap(eul.value(:,2));
+eul.value(:,3) = unwrap(eul.value(:,3));
+
 eul.unit = 'rad';
 eul.description = 'ZXZ rotation angles from J2000 to MOON_PA';
 
