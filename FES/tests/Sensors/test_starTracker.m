@@ -87,7 +87,89 @@ classdef test_starTracker < matlab.unittest.TestCase
 
             % Verify that the output matches the expected matrix
             testCase.verifyEqual(actual_out,expected_out)
-        
+
+        end
+
+        function test_sensorUsability(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Sensor Usability
+            % This function verifies the usability of the star tracker 
+            % based on the boresight direction and the positions of 
+            % celestial bodies (moon, earth, sun).
+            % It checks that the sensor correctly identifies when each body
+            % is in its field-of-view or within an exclusion zone.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Import constraints for the verification
+            import matlab.unittest.constraints.IsFalse
+            import matlab.unittest.constraints.IsTrue
+
+            % environment and sensor parameters
+            R_M = 1000; % moon radius
+            R_E = 1000; % earth radius
+            fov = deg2rad(10); % sensor's field of view
+            exclusionAngle = deg2rad(35); % sun exclusion angle
+
+            % Celestial bodies position
+            moon = timeseries(zeros(3,12),0:11);
+            earth = timeseries(100*ones(3,12),0:11);
+            sun = timeseries(100*ones(3,12),0:11);
+
+            %%% Satellite position
+
+            % Test moon check
+            sat_pos = [1100, 30000 ;
+                0, 0;
+                0, 0];
+            sat_pos = repmat(sat_pos,1,2);
+
+            % Add data for earth check
+            sat_pos = [sat_pos, sat_pos + 100*ones(3,4)];
+
+            % Add data for sun check
+            sat_pos = [sat_pos,zeros(3,4)];
+            sat = timeseries(sat_pos,0:11);
+
+            %%% Boresight direction
+
+            % Pointing towards the body moon and away from it for each
+            % distance
+            dir_data = [-1 -1 1 1; 0 0 0 0; 0 0 0 0];
+
+            % Repeat for the earth case
+            dir_data = repmat(dir_data,1,2);
+
+            % Rotate to test planet outside fov
+            rot_dir = [cosd(85) 0 -sind(85); 0 1 0; sind(85) 0 cosd(85)]*[-1;0;0];
+            dir_data(:,[2,6]) = repmat(rot_dir,1,2);
+
+            % Add rotation to the sun direction to test exclusion angle
+            sun_dir = 1/sqrt(3)*ones(3,1);
+            rotm1 =[cosd(30) 0 -sind(30); 0 1 0; sind(30) 0 cosd(30)];
+            rotm2 =[cosd(50) 0 -sind(50); 0 1 0; sind(50) 0 cosd(50)];
+            dir_data = [dir_data, rotm1*sun_dir, rotm2*sun_dir,...
+                -rotm1*sun_dir, -rotm2*sun_dir];
+            dir = timeseries(dir_data,0:11);
+
+            % Run the model
+            simulation = sim("Models\starTracker\usability.slx",'srcWorkspace','current');
+
+            % Verify moon in fov
+            testCase.verifyThat(simulation.moon_check.Data(1),IsFalse)
+            testCase.verifyThat(all(simulation.moon_check.Data(2:4)),IsTrue)
+
+            % Verify earth in fov
+            testCase.verifyThat(simulation.earth_check.Data(5),IsFalse)
+            testCase.verifyThat(all(simulation.earth_check.Data(6:8)),IsTrue)
+
+            % Verify sun in exclusion angle
+            testCase.verifyThat(simulation.sun_check.Data(9),IsFalse)
+            testCase.verifyThat(all(simulation.sun_check.Data(10:12)),IsTrue)
+
+            % Verify total usability
+            exp_usability = simulation.sun_check.Data & simulation.earth_check.Data...
+                & simulation.moon_check.Data;
+            testCase.verifyEqual(simulation.usability.Data,exp_usability);
         end
 
     end
