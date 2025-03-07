@@ -172,11 +172,13 @@ classdef test_starTracker < matlab.unittest.TestCase
             testCase.verifyEqual(simulation.usability.Data,exp_usability);
         end
 
-        function test_centroids(testCase)
+        function test_starsSensorFrame(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Test Star Tracker Centroids simulation
+            % Test Star coordinates in sensor frma
             % This function verifies whether the coordinates of the stars 
             % centroids in the focal plane are simulated correctly.
+            % Then it verifies that the derived coordinates in sensor frame
+            % are simulated correctly.
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             % Retrieve star tracker parameters from data dictionary
@@ -189,18 +191,25 @@ classdef test_starTracker < matlab.unittest.TestCase
             stars = [0 0 1; (rotm*[0;0;1])'];
             
             % Run the model
-            simulation = sim('Models/starTracker/centroids.slx','srcWorkspace','current');
+            simulation = sim('Models/starTracker/rotated_stars.slx','srcWorkspace','current');
 
             % Extract actual centroid coordinates from the model output
-            actual_coord = simulation.simout(1:2,:,1);
+            actual_centroids = simulation.centroids(1:2,:,1);
             
+            % Extract actual star coordinates from the model output
+            actual_coord = simulation.stars_sf(1:2,:,1);
+
             % Compute expected centroid coordinates based on star positions
-            exp_coord = zeros(2,2);
-            exp_coord(2,:) = starTracker.f.value*[stars(2,1:2)]/stars(2,3);
+            exp_centroids = zeros(2,2);
+            exp_centroids(2,:) = starTracker.f.value*[stars(2,1:2)]/stars(2,3);
 
             % Verify the computed centroids match expected values within tolerance
-            testCase.verifyEqual(actual_coord,exp_coord,'relTol',1e-10);
+            testCase.verifyEqual(actual_centroids,exp_centroids,'relTol',1e-10);
 
+            % Verify that the computed coordinates match the expected one.
+            % Since no rotation between frame is considered, the
+            % coordinates in sensor and inertial frame should be equal
+            testCase.verifyEqual(actual_coord,stars,'relTol',1e-10);
         end
 
     end
