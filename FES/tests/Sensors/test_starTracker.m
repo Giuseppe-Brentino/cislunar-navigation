@@ -93,8 +93,8 @@ classdef test_starTracker < matlab.unittest.TestCase
         function test_sensorUsability(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test Sensor Usability
-            % This function verifies the usability of the star tracker 
-            % based on the boresight direction and the positions of 
+            % This function verifies the usability of the star tracker
+            % based on the boresight direction and the positions of
             % celestial bodies (moon, earth, sun).
             % It checks that the sensor correctly identifies when each body
             % is in its field-of-view or within an exclusion zone.
@@ -170,6 +170,37 @@ classdef test_starTracker < matlab.unittest.TestCase
             exp_usability = simulation.sun_check.Data & simulation.earth_check.Data...
                 & simulation.moon_check.Data;
             testCase.verifyEqual(simulation.usability.Data,exp_usability);
+        end
+
+        function test_centroids(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Star Tracker Centroids simulation
+            % This function verifies whether the coordinates of the stars 
+            % centroids in the focal plane are simulated correctly.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Retrieve star tracker parameters from data dictionary
+            data = getParameters('Sensors.sldd',{'starTracker'});
+            starTracker = data{1};
+            starTracker.noise.value = 0; % Disable noise for deterministic results
+            
+            % Define star positions in inertial frame
+            rotm = [1 0 0; 0 cosd(3) -sind(3); 0 sind(3) cosd(3)];
+            stars = [0 0 1; (rotm*[0;0;1])'];
+            
+            % Run the model
+            simulation = sim('Models/starTracker/centroids.slx','srcWorkspace','current');
+
+            % Extract actual centroid coordinates from the model output
+            actual_coord = simulation.simout(1:2,:,1);
+            
+            % Compute expected centroid coordinates based on star positions
+            exp_coord = zeros(2,2);
+            exp_coord(2,:) = starTracker.f.value*[stars(2,1:2)]/stars(2,3);
+
+            % Verify the computed centroids match expected values within tolerance
+            testCase.verifyEqual(actual_coord,exp_coord,'relTol',1e-10);
+
         end
 
     end
