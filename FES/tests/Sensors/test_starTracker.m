@@ -22,6 +22,7 @@ classdef test_starTracker < matlab.unittest.TestCase
             starTracker.maxStars.value = 10;
             starTracker.fov.value = deg2rad(10);
             starTracker.catalogue.value = ones(12,3)/sqrt(3);
+            starTracker.A_BS.value = eye(3);
 
             % Define star positions by rotating around the Y-axis of an
             % angle that guarantees that the star is visible
@@ -30,25 +31,25 @@ classdef test_starTracker < matlab.unittest.TestCase
             for i = 1:length(angles)
                 roty = [cosd(angles(i)) 0 sind(angles(i)); 0 1 0; ...
                     -sind(angles(i)) 0 cosd(angles(i))];
-                pos(i,:) = (roty*[1;0;0])';
+                pos(i,:) = (roty*[0;0;1])';
                 starTracker.catalogue.value(i,:) = pos(i,:);
             end
 
             % Rotate an additional stars around the Z-axis. This star is
             % visible and is placed after a non visible star in the list
             rotz = [cosd(5) sind(5) 0; -sind(5) cosd(5) 0; 0 0 1];
-            starTracker.catalogue.value(11,:) = (rotz*[1;0;0])';
+            starTracker.catalogue.value(11,:) = (rotz*[0;0;1])';
 
             % Add a visible star at the end of the catalogue that shouldn't
             % be considered as visible
-            starTracker.catalogue.value(12,:) = [1;0;0];
+            starTracker.catalogue.value(12,:) = [0;0;1];
 
             % Set brightness values for all stars for compatibility with
             % real catalogue
             starTracker.catalogue.value(:,4) = ones(12,1);
 
             % Define camera pointing direction
-            camera_direction = [1;0;0];
+            A_BN = eye(3);
 
             % Run the simulation
             simulation = sim('Models\starTracker\visible_stars.slx','srcWorkspace','current');
@@ -174,7 +175,7 @@ classdef test_starTracker < matlab.unittest.TestCase
 
         function test_starsSensorFrame(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Test Star coordinates in sensor frma
+            % Test Star coordinates in sensor frame
             % This function verifies whether the coordinates of the stars 
             % centroids in the focal plane are simulated correctly.
             % Then it verifies that the derived coordinates in sensor frame
@@ -189,6 +190,9 @@ classdef test_starTracker < matlab.unittest.TestCase
             % Define star positions in inertial frame
             rotm = [1 0 0; 0 cosd(3) -sind(3); 0 sind(3) cosd(3)];
             stars = [0 0 1; (rotm*[0;0;1])'];
+            
+            % Number of visible stars
+            N = 2;
             
             % Run the model
             simulation = sim('Models/starTracker/rotated_stars.slx','srcWorkspace','current');
