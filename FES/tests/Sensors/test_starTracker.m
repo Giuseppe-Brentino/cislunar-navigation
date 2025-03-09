@@ -176,7 +176,7 @@ classdef test_starTracker < matlab.unittest.TestCase
         function test_starsSensorFrame(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test Star coordinates in sensor frame
-            % This function verifies whether the coordinates of the stars 
+            % This function verifies whether the coordinates of the stars
             % centroids in the focal plane are simulated correctly.
             % Then it verifies that the derived coordinates in sensor frame
             % are simulated correctly.
@@ -186,20 +186,20 @@ classdef test_starTracker < matlab.unittest.TestCase
             data = getParameters('Sensors.sldd',{'starTracker'});
             starTracker = data{1};
             starTracker.noise.value = 0; % Disable noise for deterministic results
-            
+
             % Define star positions in inertial frame
             rotm = [1 0 0; 0 cosd(3) -sind(3); 0 sind(3) cosd(3)];
             stars = [0 0 1; (rotm*[0;0;1])'];
-            
+
             % Number of visible stars
             N = 2;
-            
+
             % Run the model
             simulation = sim('Models/starTracker/rotated_stars.slx','srcWorkspace','current');
 
             % Extract actual centroid coordinates from the model output
             actual_centroids = simulation.centroids(1:2,:,1);
-            
+
             % Extract actual star coordinates from the model output
             actual_coord = simulation.stars_sf(1:2,:,1);
 
@@ -214,6 +214,68 @@ classdef test_starTracker < matlab.unittest.TestCase
             % Since no rotation between frame is considered, the
             % coordinates in sensor and inertial frame should be equal
             testCase.verifyEqual(actual_coord,stars,'relTol',1e-10);
+        end
+
+        function test_attitudeEstimation(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Attitude Estimation
+            % This function verifies that the estimated attitude error 
+            % remains within the expected tolerance over the simulation 
+            % period.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Retrieve sensor parameters
+            sens = getParameters('Sensors.sldd',{'starTracker'});
+            starTracker = sens{1};
+
+            % Retrieve scenario parameters
+            scenario = getParameters('Scenario.sldd',{'Environment',...
+                'celestialBodies','spacecraftState','accelerations'});
+            Environment = scenario{1};
+            celestialBodies = scenario{2};
+            spacecraftState = scenario{3};
+            accelerations = scenario{4};
+
+            % Define orbital parameters
+            a = 7e6;  % Semi-major axis (meters)
+    e = 0.43; % Eccentricity
+    i = 23;   % Inclination (degrees)
+    OM = 235; % RAAN (degrees)
+    om = 69;  % Argument of perigee (degrees)
+    th = 42;  % True anomaly (degrees)
+
+            % Convert orbital elements to position and velocity
+            [x0,v0] = keplerian2ijk(a,e,i,OM,om,th);
+            x0 = x0/1000;  % convert to kilometers
+            v0 = v0/1000; % convert to kilometers per second
+
+            % Simulation time (orbital period)
+            tf = 2*pi*sqrt((a/1000)^3/398600);
+
+            % Initial attitude in DCM form
+            h = cross(x0,v0);
+            A2 = -h'/norm(h);
+            A3 = -x0'/norm(x0);
+            A1 = cross(A2,A3);
+            A = [A1;A2;A3];
+
+            % Convert DCM to quaternion for initial orientation
+            q0_t = dcm2quat(A)';
+            q0 = [q0_t(2:4);q0_t(1)];
+
+            % Run simulation
+            simulation = sim('Models\starTracker\full_sensor.slx',...
+                'srcWorkspace','current');
+
+            % Extract attitude estimation error
+            error = abs(simulation.simout.Data(:,1));
+
+            % The value of the first element of the error quaternion
+            % should be close to 1 (within tolerance)
+            expectedError = ones(length(error),1);
+
+            % Verify that the error is within the acceptable threshold
+            testCase.verifyEqual(error,expectedError,'absTol',1e-6);
         end
 
     end
