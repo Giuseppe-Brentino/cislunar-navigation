@@ -219,8 +219,8 @@ classdef test_starTracker < matlab.unittest.TestCase
         function test_attitudeEstimation(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test Attitude Estimation
-            % This function verifies that the estimated attitude error 
-            % remains within the expected tolerance over the simulation 
+            % This function verifies that the estimated attitude error
+            % remains within the expected tolerance over the simulation
             % period.
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -238,11 +238,11 @@ classdef test_starTracker < matlab.unittest.TestCase
 
             % Define orbital parameters
             a = 7e6;  % Semi-major axis (meters)
-    e = 0.43; % Eccentricity
-    i = 23;   % Inclination (degrees)
-    OM = 235; % RAAN (degrees)
-    om = 69;  % Argument of perigee (degrees)
-    th = 42;  % True anomaly (degrees)
+            e = 0.43; % Eccentricity
+            i = 23;   % Inclination (degrees)
+            OM = 235; % RAAN (degrees)
+            om = 69;  % Argument of perigee (degrees)
+            th = 42;  % True anomaly (degrees)
 
             % Convert orbital elements to position and velocity
             [x0,v0] = keplerian2ijk(a,e,i,OM,om,th);
