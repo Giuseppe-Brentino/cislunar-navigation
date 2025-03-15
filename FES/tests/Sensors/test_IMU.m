@@ -258,12 +258,12 @@ classdef test_IMU < matlab.unittest.TestCase
         function test_misalignment(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test IMU Misalignment
-            % This function verifies that the imu misalignment errors 
-            % follow the expected distribution by running multiple 
-            % simulations and comparing the mean and standard deviation of 
+            % This function verifies that the imu misalignment errors
+            % follow the expected distribution by running multiple
+            % simulations and comparing the mean and standard deviation of
             % the error with their expected values.
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            
+
             % Set random seed for reproducibility
             rng('default')
 
@@ -273,10 +273,10 @@ classdef test_IMU < matlab.unittest.TestCase
 
             % Number of Monte Carlo simulations
             Nsim = 1000;
-            
+
             % Load the systematic errors model
             load_system('Models\IMU\systematic_errors.slx')
-            
+
             % Set up parallel simulations with varying sensor misalignment errors
             simIn(1:Nsim) = Simulink.SimulationInput('systematic_errors');
             for i = 1:Nsim
@@ -302,14 +302,46 @@ classdef test_IMU < matlab.unittest.TestCase
 
             % Verify mean error is within expected tolerance
             testCase.verifyEqual(mean_error,expected_mean,'absTol',sensor.misalignment.std/10)
-            
-             % Verify standard deviation matches expected value within tolerance
+
+            % Verify standard deviation matches expected value within tolerance
             testCase.verifyEqual(std_error,expected_std,'relTol',5e-2)
 
             % Ensure misalignment errors are not identical across axes
             testCase.verifyNotEqual(mean_error(1),mean_error(2))
             testCase.verifyNotEqual(mean_error(3),mean_error(2))
             testCase.verifyNotEqual(mean_error(1),mean_error(3))
+        end
+
+        function test_accelerationTransport(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Acceleration Transport
+            % This function verifies that the acceleration transport model
+            % correctly accounts for linear and rotational motion effects,
+            % ensuring the computed acceleration matches expected
+            % theoretical values.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Retrieve IMU sensor parameters
+            data = getParameters('Sensors.sldd',{'IMU'});
+            IMU = data{1};
+
+            % Align imu with body axes (rotation matrix already tested)
+            IMU.orientation.value = zeros(3,1);
+
+            % Run simulation
+            simulation = sim('Models\IMU\imu_acceleration.slx','srcWorkspace','current');
+
+            % Extract actual measured acceleration from simulation
+            actual_acc = simulation.acc;
+
+            % Compute expected acceleration based on motion dynamics
+            position = repmat(IMU.position.value,[1,1,size(actual_acc,3)]);
+            expected_acc = ones(3,1,size(actual_acc,3)) + ...
+                cross(simulation.w,cross(simulation.w,position,1),1) + ...
+                cross(simulation.w_dot,position);
+
+            % Verify that the computed acceleration matches the expected acceleration
+            testCase.verifyEqual(actual_acc,expected_acc)
         end
 
     end
