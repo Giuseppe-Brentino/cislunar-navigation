@@ -35,8 +35,8 @@ classdef test_radio < matlab.unittest.TestCase
         function test_measurementUpdate(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test Measurement Update
-            % The function checks whether the timestamp and range values 
-            % are properly computed and updated when the signal is 
+            % The function checks whether the timestamp and range values
+            % are properly computed and updated when the signal is
             % received, ensuring consistency with expected results.
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -45,9 +45,9 @@ classdef test_radio < matlab.unittest.TestCase
 
             % Define the position of the transmitting spacecraft over time
             TX_data = [0 -101 0 0 0 0 -101;
-                       0 0 101 101 101 101 0;
-                       0 0 0 0 0 0 0];
-            
+                0 0 101 101 101 101 0;
+                0 0 0 0 0 0 0];
+
             % Define the position of the receiving spacecraft over time
             RX_data = [zeros(3,1), [1000*ones(1,6);zeros(2,6)]];
 
@@ -72,6 +72,51 @@ classdef test_radio < matlab.unittest.TestCase
             % Verify range calculations are correct
             testCase.verifyTrue(all(range.Data(range.Time>=2)==sqrt(101^2+1000^2)));
             testCase.verifyTrue(all(range.Data(range.Time<2)==0));
+
+        end
+
+        function test_signalGeneration(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Signal Generation
+            % This function verifies that the signal generation model 
+            % correctly computes the reception times (t1, t2) and 
+            % corresponding received signals (r1, r2). 
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Run simulation
+            simulation = sim("Models\Radio\test_signalGen.slx");
+
+            % Extract simulation outputs
+            t1 = simulation.t1;
+            t2 = simulation.t2;
+            r1 = simulation.r1;
+            r2 = simulation.r2;
+
+            % Expected values for t1 at key timestamps
+            t1_expected = [0.1; 1.1; 2.1];
+
+            % Verify t1 values are assigned correctly at different time intervals
+            testCase.verifyTrue( all(t1.Data(t1.Time>=0.1 & t1.Time<1.1)==t1_expected(1)) );
+            testCase.verifyTrue( all(t1.Data(t1.Time>=1.1 & t1.Time<2.1)==t1_expected(2)) );
+            testCase.verifyTrue( all(t1.Data(t1.Time>=2.1 )==t1_expected(3)) );
+
+            % Verify t2 values are correctly shifted by 0.1 with respect to
+            % t1
+            testCase.verifyTrue( all(t2.Data(t2.Time>=0.2 & t2.Time<1.1)==t1_expected(1)+0.1) );
+            testCase.verifyEqual( t2.Data(t2.Time>=1.2 & t2.Time<2.1),...
+                ones(length(t2.Data(t2.Time>=1.2 & t2.Time<2.1)),1)*(t1_expected(2)+0.1),...
+                'absTol', 1e-15 );
+
+            % Validate specific time instances for t2 using small tolerance
+            % (when t1 is updated with a new measure, but t2 is still the
+            % old one)
+            testCase.verifyEqual( t2.Data(t2.Time==1.1), t1.Data(t1.Time==1.1)-0.9,'AbsTol',1e-14 );
+            testCase.verifyEqual( t2.Data(t2.Time==2.1), t1.Data(t1.Time==2.1)-0.9, 'AbsTol',1e-14 );
+
+            % Verify that r1 and r2 are computed correctly (they should be
+            % equal to their timestamp in this case)
+            testCase.verifyEqual(t1.Data,r1.Data,'AbsTol',1e-14);
+            testCase.verifyEqual(t2.Data,r2.Data,'AbsTol',1e-14);
 
         end
 
