@@ -152,7 +152,7 @@ classdef test_radio < matlab.unittest.TestCase
             testCase.verifyEqual(actual,expected)
         end
 
-        function test_tDLL(testCase)
+        function test_tDDL(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test Delay Lock Loop (DLL) Noise Standard Deviation
             % This function verifies the standard deviation of the DLL
@@ -172,7 +172,36 @@ classdef test_radio < matlab.unittest.TestCase
             CN0 = 10^( CN0_dB*0.1 );
 
             % Run the simulation
-            simulation = sim('Models/Radio/test_DDLNoise.slx','srcworkspace','current');
+            simulation = sim('Models/Radio/test_DLLNoise.slx','srcworkspace','current');
+
+            % Extract actual standard deviation from simulation results
+            actual_std = simulation.simout.Data;
+
+            % Verify that the actual standard deviation matches the expected value
+            testCase.verifyEqual(actual_std,expected_std,'absTol',1e-3)
+        end
+
+        function test_tPLL(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Phase-Locked Loop (PLL) Noise Standard Deviation
+            % This function verifies the standard deviation of the PLL 
+            % tracking error based on the Carrier-to-Noise ratio (C/N0).
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Load radio parameters
+            radio = getParameters('Sensors.sldd',{'Radio'});
+            data = radio{1};
+
+            % Validation data, from: E. D. Kaplan and C. J. Hegarty,
+            % Understanding GPS: Principles and Applications
+            CN0_dB = 29.78576615831518;
+            expected_std =8.413275946698140;
+
+            % Convert C/N0 from dB to linear scale
+            CN0 = 10^( CN0_dB*0.1 );
+
+            % Run the simulation
+            simulation = sim('Models/Radio/test_PLLNoise.slx','srcworkspace','current');
 
             % Extract actual standard deviation from simulation results
             actual_std = simulation.simout.Data;
