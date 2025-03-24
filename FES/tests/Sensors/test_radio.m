@@ -152,6 +152,35 @@ classdef test_radio < matlab.unittest.TestCase
             testCase.verifyEqual(actual,expected)
         end
 
+        function test_tDLL(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Delay Lock Loop (DLL) Noise Standard Deviation
+            % This function verifies the standard deviation of the DLL
+            % tracking error based on the Carrier-to-Noise ratio (C/N0).
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Load radio parameters
+            radio = getParameters('Sensors.sldd',{'Radio'});
+            data = radio{1}.PN;
+
+            % Validation data, from: E. D. Kaplan and C. J. Hegarty,
+            % Understanding GPS: Principles and Applications
+            CN0_dB = 30.001913221101333;
+            expected_std = 2.6322574919469705;
+
+            % Convert C/N0 from dB to linear scale
+            CN0 = 10^( CN0_dB*0.1 );
+
+            % Run the simulation
+            simulation = sim('Models/Radio/test_DDLNoise.slx','srcworkspace','current');
+
+            % Extract actual standard deviation from simulation results
+            actual_std = simulation.simout.Data;
+
+            % Verify that the actual standard deviation matches the expected value
+            testCase.verifyEqual(actual_std,expected_std,'absTol',1e-3)
+        end
+
     end
 
 end
