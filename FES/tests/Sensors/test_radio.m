@@ -78,9 +78,9 @@ classdef test_radio < matlab.unittest.TestCase
         function test_signalGeneration(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test Signal Generation
-            % This function verifies that the signal generation model 
-            % correctly computes the reception times (t1, t2) and 
-            % corresponding received signals (r1, r2). 
+            % This function verifies that the signal generation model
+            % correctly computes the reception times (t1, t2) and
+            % corresponding received signals (r1, r2).
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             % Run simulation
@@ -118,6 +118,38 @@ classdef test_radio < matlab.unittest.TestCase
             testCase.verifyEqual(t1.Data,r1.Data,'AbsTol',1e-14);
             testCase.verifyEqual(t2.Data,r2.Data,'AbsTol',1e-14);
 
+        end
+
+        function test_CN0(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test Carrier-to-Noise Ratio (C/N0)
+            % This function verifies the correct implementation of the
+            % Carrier-to-Noise ratio (C/N0) based on the given transmission
+            % and receiver parameters and space loss calculations.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Define signal parameters
+            range = 100;      % km
+            lambda = 0.1;     % m (wavelength)
+            Pt = 15;          % dBW (transmit power)
+            Gt = 10;          % dB (transmit antenna gain)
+            Gr = 1;           % dB (receive antenna gain)
+            N0 = -200.9;      % dB (thermal noise power)
+            L = 2;            % dB (receiver losses)
+
+            % Run simulation
+            simulation = sim('Models/Radio/test_CN0.slx','srcWorkspace', 'current');
+
+            % Extract actual simulation result
+            actual = simulation.simout;
+
+            % Compute expected C/N0 value
+            L_space = 20*log10(lambda/(4*pi*(range*1000))); % Free-space path loss
+            CN0_dB = Pt + Gt + L_space + Gr - N0 -L; % Compute C/N0 in dB
+            expected = 10^( CN0_dB*0.1 ); % Convert to linear scale
+
+            % Verify that the actual and expected results match
+            testCase.verifyEqual(actual,expected)
         end
 
     end
