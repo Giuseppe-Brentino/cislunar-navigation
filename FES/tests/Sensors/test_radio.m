@@ -73,6 +73,9 @@ classdef test_radio < matlab.unittest.TestCase
             testCase.verifyTrue(all(range.Data(range.Time>=2)==sqrt(101^2+1000^2)));
             testCase.verifyTrue(all(range.Data(range.Time<2)==0));
 
+            % Verify timing error
+            testCase.verifyEqual(simulation.timestamp,simulation.timingError)
+
         end
 
         function test_signalGeneration(testCase)
