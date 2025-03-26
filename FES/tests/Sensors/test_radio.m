@@ -56,7 +56,7 @@ classdef test_radio < matlab.unittest.TestCase
             TX = timeseries(TX_data,time);
 
             % Moon radius
-            R_M = 100;
+            R_M = 100/1000;
 
             % Run simulation
             simulation = sim('Models\Radio\test_update.slx','srcWorkspace','current');
@@ -132,7 +132,7 @@ classdef test_radio < matlab.unittest.TestCase
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             % Define signal parameters
-            range = 100;      % km
+            range = 1e5;      % m
             lambda = 0.1;     % m (wavelength)
             Pt = 15;          % dBW (transmit power)
             Gt = 10;          % dB (transmit antenna gain)
@@ -147,7 +147,7 @@ classdef test_radio < matlab.unittest.TestCase
             actual = simulation.simout;
 
             % Compute expected C/N0 value
-            L_space = 20*log10(lambda/(4*pi*(range*1000))); % Free-space path loss
+            L_space = 20*log10(lambda/(4*pi*(range))); % Free-space path loss
             CN0_dB = Pt + Gt + L_space + Gr - N0 -L; % Compute C/N0 in dB
             expected = 10^( CN0_dB*0.1 ); % Convert to linear scale
 
