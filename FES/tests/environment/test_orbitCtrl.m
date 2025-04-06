@@ -19,12 +19,12 @@ classdef test_orbitCtrl < matlab.unittest.TestCase
         % Test methods
 
         function test_orbitParameters(testCase)
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Test orbital parameter extraction
             % This test validates the inclination (i), specific angular
             % momentum (h) and argument of latitude (u) computed to control
             % the orbit inclination.
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             % Define Keplerian elements
             a = 7e6;         % Semi-major axis [m]
@@ -69,6 +69,33 @@ classdef test_orbitCtrl < matlab.unittest.TestCase
             u_diff = angdiff(actual_u,expected_u);
             testCase.verifyEqual(u_diff,zeros(length(u_diff),1),'absTol',2e-8)
         end
+
+        function test_uCheck(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test orbit controller u-bound checking logic
+            % Validates that the flag output correctly identifies
+            % violations of the minimum and maximum target_u limits.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Load orbit controller parameters
+            OrbitCtrl = testCase.OrbitCtrl;
+
+            % Define a timeseries of argument of latitude (u)
+            u_values = [1.5*pi, OrbitCtrl.target_uMax.value, pi, ...
+                OrbitCtrl.target_uMin.value, 0];
+            time_values = 0:4;
+            u = timeseries(u_values, time_values);
+
+            % Run the orbit control check model
+            simulation = sim('Models/orbitCtrl_check_test.slx','srcWorkspace','current');
+
+            % Expected flag vector (0 indicates out-of-bounds condition)
+            expected_flags = [0, 0, 1, 0, 0];
+
+            % Verify the simulation output flags match expected behavior
+            testCase.verifyEqual(simulation.flag', expected_flags);
+        end
+
     end
 
 end
