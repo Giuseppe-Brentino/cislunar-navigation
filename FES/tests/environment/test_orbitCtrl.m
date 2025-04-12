@@ -96,6 +96,52 @@ classdef test_orbitCtrl < matlab.unittest.TestCase
             testCase.verifyEqual(simulation.flag', expected_flags);
         end
 
+        function test_controller(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test orbit inclination controller (bang-bang logic)
+            % Validates that acceleration commands are triggered at correct
+            % inclination thresholds based on the 'on' and 'off' control 
+            % limits.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Load orbit control parameters
+            OrbitCtrl = testCase.OrbitCtrl;
+
+            ctrl_on = OrbitCtrl.bangbang.on.value;
+            ctrl_off = OrbitCtrl.bangbang.off.value;
+            target = OrbitCtrl.target_i.value;
+
+            % Define inclination input data for the test (times and values)
+            i_data = [ target;
+                target + ctrl_on + 0.1;
+                target;
+                target + ctrl_off + 0.01;
+                target + ctrl_off - 0.01;
+                target - ctrl_on - 0.1;
+                target;
+                target - ctrl_off - 0.01;
+                target - ctrl_off + 0.01;
+                ];
+
+            i_times = 0:(length(i_data)-1);
+  
+            i = timeseries(i_data,i_times);
+
+            % Run the simulation
+            simulation = sim('Models\orbitCtrl_controller.slx','srcWorkspace','current');
+
+            % Extract simulation outputs
+            actual_acc = simulation.acc.Data;
+
+            % Expected acceleration response (in km/s^2)
+            expected_acc = zeros(length(i_times),3);
+            expected_acc(2:4,1) = OrbitCtrl.a_thrust.value*1e-3; % Thrust ON
+            expected_acc(6:8,1) = -OrbitCtrl.a_thrust.value*1e-3; % Thrust ON in opposite direction
+
+            % Compare simulation result with expected acceleration
+            testCase.verifyEqual(actual_acc,expected_acc);
+        end
+
     end
 
 end
