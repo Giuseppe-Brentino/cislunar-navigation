@@ -4,11 +4,13 @@ clc;
 
 %% Simulate measurements
 
-rng('default')
+% rng('default')
 
 meas = sim("measurement_sim.slx");
 accelerometer = meas.acc';
 gyroscope = meas.omega';
+quat = meas.quat';
+tout = meas.tout;
 dt = 1/30;
 %% Forward Euler at full speed
 
@@ -27,11 +29,17 @@ omega_mat   = [ 0      -omega(3)   omega(2);
 Omega       = [ -omega_mat  omega;
                 -omega'      0];         
 q(:,i)      = (eye(4) + 0.5*Omega*dt)*q(:,i-1);
+q(:,i) = q(:,i)/norm(q(:,i));
 end
 time.FE_30Hz=toc;
-
+figure
+hold on
+grid on
+plot(tout,q,'b')
 %% Forward Euler at reduced speed
 reduced_coeff = 6; % From 30 to 5 Hz
+
+t_red = tout(1:reduced_coeff:end);
 gyro_red = gyroscope(:,1:reduced_coeff:end);
 acc_red = accelerometer(:,1:reduced_coeff:end);
 
@@ -51,6 +59,11 @@ omega_mat   = [ 0      -omega(3)   omega(2);
 Omega       = [ -omega_mat  omega;
                 -omega'      0];         
 q(:,i)      = (eye(4) + 0.5*Omega*dt*reduced_coeff)*q(:,i-1);
+q(:,i) = q(:,i)/norm(q(:,i));
 end
 
 time.FE_5Hz=toc;
+
+plot(t_red,q,'k')
+plot(tout,quat,'r')
+plot(tout,meas.real_quat,'g')
