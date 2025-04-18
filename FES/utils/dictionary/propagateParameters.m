@@ -42,5 +42,37 @@ updateParameters('Scenario.sldd',{'Environment','TestData'},{Environment,TestDat
 % Update initial states of the satellites
 initialStates();
 
+%% Navigation Data
+
+% Get Parameters
+nav = getParameters('Navigation.sldd',{'Propagation'});
+Propagation = nav{1};
+
+% Update starting date
+StartDate = Environment.Date; 
+
+% Update Moon parameters
+Propagation.Moon.eul0.value = eul.value(1,:);
+Propagation.Moon.eul0.unit = 'rad';
+Propagation.Moon.eul0.description = 'Initial ZXZ rotation angles from J2000 to MOON_PA';
+
+Propagation.Moon.eul_dot.value = mean(eul_dot.value,1);
+Propagation.Moon.eul_dot.unit = 'rad/s';
+Propagation.Moon.eul_dot.description = 'Time derivative of the ZXZ rotation angles from J2000 to MOON_PA';
+
+Propagation.Moon.SH.csi.value = Environment.Moon.SH.csi.value...
+    (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
+Propagation.Moon.SH.eta.value = Environment.Moon.SH.eta.value...
+    (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
+Propagation.Moon.SH.zeta.value= Environment.Moon.SH.zeta.value...
+    (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
+Propagation.Moon.SH.Cnm.value = Environment.Moon.SH.Cnm.value...
+    (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
+Propagation.Moon.SH.Snm.value = Environment.Moon.SH.Snm.value...
+    (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
+
+% Update dictionary
+updateParameters('Navigation.sldd',{'StartDate','Propagation'},{StartDate,Propagation},true)
+
 end
 

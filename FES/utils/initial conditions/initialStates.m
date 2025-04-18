@@ -14,7 +14,7 @@ th = 0;
 
 OrbitCtrl = getParameters('Scenario.sldd',{'OrbitCtrl'});
 OrbitCtrl{1}.target_i.value = rad2deg(i);
-updateParameters('Scenario.sldd',{'OrbitCtrl'},OrbitCtrl(1));
+updateParameters('Scenario.sldd',{'OrbitCtrl'},OrbitCtrl(1),true);
 
 % conversion to cartesian state
 [x,v] = kep2car(a,e,i,OM,om,th,data{1}.Moon.mu.value);
