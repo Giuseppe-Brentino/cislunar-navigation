@@ -45,8 +45,9 @@ initialStates();
 %% Navigation Data
 
 % Get Parameters
-nav = getParameters('Navigation.sldd',{'Propagation'});
+nav = getParameters('Navigation.sldd',{'Propagation','R_sensor2body'});
 Propagation = nav{1};
+R_sensor2body = nav{2};
 
 % Update starting date
 StartDate = Environment.Date; 
@@ -71,8 +72,17 @@ Propagation.Moon.SH.Cnm.value = Environment.Moon.SH.Cnm.value...
 Propagation.Moon.SH.Snm.value = Environment.Moon.SH.Snm.value...
     (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
 
+
+
+% Get IMU orientation angles
+imu = getParameters('Sensors.sldd',{'IMU'});
+imu_angles = imu{1}.orientation.value;
+ 
+R_sensor2body.value = angle2dcm(imu_angles(3),imu_angles(2),imu_angles(1),'ZXZ')';
+
 % Update dictionary
-updateParameters('Navigation.sldd',{'StartDate','Propagation'},{StartDate,Propagation},true)
+updateParameters('Navigation.sldd',{'StartDate','Propagation','R_sensor2body'},...
+    {StartDate,Propagation,R_sensor2body},true)
 
 end
 
