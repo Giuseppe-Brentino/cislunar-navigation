@@ -53,6 +53,21 @@ cspice_furnsh(strcat(folder,'\..\..\Data\de421.bsp'));
 
 % Save initial conditions
 BeaconSpacecraft = saveIC(BeaconSpacecraft,xx(1:3),xx(4:6));
-%% Update dictionary
+
+%% Filter initial state
+
+% Get data from dictionary
+nav = getParameters('Navigation.sldd',{'x0'});
+
+% Save inital state
+x0.value(1:3) = MainSpacecraft.x0.nominal;
+x0.value(4:6) = MainSpacecraft.v0.nominal;
+x0.value(7:10) = MainSpacecraft.q0.value;
+x0.value(11:13) = BeaconSpacecraft.x0.nominal;
+x0.value(14:16) = BeaconSpacecraft.v0.nominal;
+x0.description = 'Initial state. position main [km]; velocity main [km/s]; quaternions [-]; position beacon [km]; velocity beacon [km/s]; bias accelerometer [m/s^2]; bias gyro [rad/s]; bias clock [s]; drift clock [s/s]';
+%% Update dictionaries
 updateParameters('Scenario.sldd',{'MainSpacecraft','BeaconSpacecraft'},...
     {MainSpacecraft,BeaconSpacecraft}, true);
+
+updateParameters('Navigation.sldd',{'x0'},{x0},true);
