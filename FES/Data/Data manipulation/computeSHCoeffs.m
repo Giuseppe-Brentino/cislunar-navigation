@@ -1,4 +1,4 @@
-function [csi, eta, zeta, Cnm, Snm, TestData]= computeSHCoeffs(n_max,m_max)
+function [csi, eta, zeta, Cnm, Snm, Znm, TestData]= computeSHCoeffs(n_max,m_max)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Compute the spherical harmonics coefficients (csi, eta, zeta, Cnm, Snm) 
 % based on the input maximum order and degree (n_max, m_max). The function 
@@ -13,6 +13,7 @@ function [csi, eta, zeta, Cnm, Snm, TestData]= computeSHCoeffs(n_max,m_max)
 % csi: (n_max+1) x (m_max+1) matrix - precomputed csi coefficients
 % eta: (n_max+1) x (m_max+1) matrix - precomputed eta coefficients
 % zeta: (n_max+1) x (m_max+1) matrix - precomputed zeta coefficients
+% Znm: (n_max+1) x (m_max+1) matrix - precomputed Znm coefficients
 % Cnm: (n_max+1) x (m_max+1) matrix - precomputed Cnm coefficients
 % Snm: (n_max+1) x (m_max+1) matrix - precomputed Snm coefficients
 % TestData: struct - contains precomputed spherical harmonic data for testing
@@ -39,14 +40,15 @@ glgm3150_full = readmatrix(strcat(folder,'/gglp_glgm3150_sha.csv'));
 glgm3150 = glgm3150_full( (glgm3150_full(:,1)<=m_max) & ...
     (glgm3150_full(:,2)<=n_max), 1:4);
 
-% Initialize matrices for csi, eta, zeta, Cnm, Snm
+% Initialize matrices for csi, eta, zeta, Cnm, Snm, Znm
 csi = zeros(n_max+1,m_max+1);
 eta = zeros(n_max+1,m_max+1);
 zeta = zeros(n_max+1,m_max+1);
 Cnm = zeros(n_max+1,m_max+1);
 Snm = zeros(n_max+1,m_max+1);
+Znm = zeros(n_max+1,m_max+1);
 
-% Compute csi, eta, zeta, and extract Cnm, Snm values
+% Compute csi, eta, zeta, Znm and extract Cnm, Snm values
 for i = 1:size(glgm3150,1)
     n = glgm3150(i,1);
     m = glgm3150(i,2);
@@ -61,8 +63,10 @@ for i = 1:size(glgm3150,1)
     % Calculate zeta for m = 0 or m > 0
     if m == 0
         zeta(n+1,1) = sqrt(n*(n+1)/2);
+        Znm(n+1,m+1) = sqrt(0.5*n*(n-1)*(n+1)*(n+2));
     else
         zeta(n+1,m+1) = sqrt( (n-m)*(n+m+1) );
+        Znm(n+1,m+1) = sqrt((n-m)*(n-m-1)*(n+m+1)*(n+m+2));
     end
 
     % Extract Cnm and Snm coefficients
@@ -80,6 +84,7 @@ TestData.SH.csi.value = csi(1:n+1,1:n+1);
 TestData.SH.eta.value = eta(1:n+1,1:n+1);
 TestData.SH.zeta.value = zeta(1:n+1,1:n+1);
 TestData.SH.Pnm.value = [1, 0, sqrt(3)];
+TestData.SH.Znm.value = Znm;
 TestData.SH.mu.value = 398600.47*1e9;
 TestData.SH.ref_radius.value = 6378139;
 

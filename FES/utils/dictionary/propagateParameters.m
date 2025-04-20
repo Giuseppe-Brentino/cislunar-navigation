@@ -27,7 +27,7 @@ Environment.Moon.jd_interval = jd_interval;
 % Update the Moon's spherical harmonics coefficients
 n = Environment.Moon.SH.n.value;
 m = Environment.Moon.SH.n.value;
-[csi, eta, zeta, Cnm, Snm, TestData] = computeSHCoeffs(n,m);
+[csi, eta, zeta, Cnm, Snm, Znm, TestData] = computeSHCoeffs(n,m);
 
 % Update spherical harmonic coefficients in the Environment structure
 Environment.Moon.SH.csi.value = csi;
@@ -35,6 +35,7 @@ Environment.Moon.SH.eta.value = eta;
 Environment.Moon.SH.zeta.value = zeta;
 Environment.Moon.SH.Cnm.value = Cnm;
 Environment.Moon.SH.Snm.value = Snm;
+Environment.Moon.SH.Znm.value = Znm;
 
 % Update the dictionary with the modified 'Environment' and 'TestData' fields
 updateParameters('Scenario.sldd',{'Environment','TestData'},{Environment,TestData},true);
@@ -70,6 +71,8 @@ Propagation.Moon.SH.zeta.value= Environment.Moon.SH.zeta.value...
 Propagation.Moon.SH.Cnm.value = Environment.Moon.SH.Cnm.value...
     (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
 Propagation.Moon.SH.Snm.value = Environment.Moon.SH.Snm.value...
+    (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
+Propagation.Moon.SH.Znm.value = Environment.Moon.SH.Znm.value...
     (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
 
 
