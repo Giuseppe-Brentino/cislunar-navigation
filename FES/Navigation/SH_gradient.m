@@ -30,7 +30,7 @@ classdef SH_gradient < matlab.System
 
     methods (Access = protected)
 
-        function dg_dx = stepImpl(obj,x)
+        function [g, dg_dx] = stepImpl(obj,x)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Compute the gradient of the gravity field using spherical
             % harmonics.
@@ -73,7 +73,7 @@ classdef SH_gradient < matlab.System
             R = getR(obj);
             S = getS(obj);
             T = getT(obj);
-            
+
             alpha = [Q;R;0];
             Y = [S;T;0];
 
@@ -83,10 +83,27 @@ classdef SH_gradient < matlab.System
 
             X = x/obj.r;
 
+            J = getJ(obj);
+            K = getK(obj);
+
+            % Compute acceleration due to spherical harmonics and point mass
+            Lambda = Gamma + x(3)*H/obj.r;
+
+            g_sh = -obj.mu/obj.r^2*(Lambda*X - [J;K;H]);
+            g_pm = -obj.mu/obj.r^2*X;
+            g = g_sh+g_pm;
+
             % Compute derivatives
             dg_dx = obj.mu/obj.r^3 * ( [X, alpha]*[F G; G M] * [X';alpha'] + ...
                 [X, d]*[0 -1;-1 0]*[X'; d'] + ...
                 [N-Lambda, -Omega, Q; -Omega, -N-Lambda, R; Q, R, -Lambda ] );
+
+            dg_dx1 = obj.mu/obj.r^3*(L+M*x(3)^2/obj.r^2 + 2*P*x(3)/obj.r + Gamma ...
+                + 3*H*x(3)/obj.r)      *((x*x')/obj.r^2) - obj.mu/obj.r^3*(M*x(3)/obj.r ...
+                + P + H)*((x*alpha' + alpha*x')/obj.r) + obj.mu/obj.r^3*M*alpha*alpha' ...
+                - obj.mu/obj.r^3*(Gamma+x(3)/obj.r*H)*eye(3) + obj.mu/obj.r^3 * ...
+                ( (alpha*alpha'+alpha*alpha') - x(3)/obj.r^2*(alpha*x' + x*alpha') - ...
+                (Y*x'+x*Y')/obj.r + [N -Omega 0; -Omega -N 0; 0 0 0] );
 
         end
 
@@ -94,11 +111,11 @@ classdef SH_gradient < matlab.System
 
     methods
 
-        function [dg_dx] = getDerivative(self,x)
+        function [g, dg_dx] = getDerivative(self,x)
             % Wrapper for the stepImpl function
 
-            dg_dx = stepImpl(self,x);
-           
+            [g,dg_dx] = stepImpl(self,x);
+
 
         end
 
@@ -236,6 +253,71 @@ classdef SH_gradient < matlab.System
             end
         end
 
+        function J = getJ(obj)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Compute the J component of the gravitational potential
+            % expansion.
+            %
+            % Input:
+            % obj: sphericalHarmonics - instance of the spherical harmonics
+            %                           class
+            %
+            % Output:
+            % J: double - J component of the gravitational acceleration
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Initialize J to zero
+            J=0;
+
+            % Compute the summation for J
+            for n=2:obj.nMax
+
+                % Initialize J_n for the current degree n
+                J_n = 0;
+
+                % Compute the summation for order m
+                for m = 1:n
+                    J_n = J_n + m*obj.Pnm(n+1,m+1) * ( obj.Cm(m)*obj.Cnm(n+1,m+1) + ...
+                        obj.Sm(m)*obj.Snm(n+1,m+1) );
+                end
+
+                % Accumulate the scaled sum into J
+                J = J + (obj.ref_radius/obj.r)^n*J_n;
+
+            end
+        end
+
+        function K = getK(obj)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Compute the K component of the gravitational potential
+            % expansion.
+            %
+            % Input:
+            % obj: sphericalHarmonics - instance of the spherical harmonics
+            %                           class
+            %
+            % Output:
+            % K: double - K component of the gravitational acceleration
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+            % Initialize K to zero
+            K=0;
+
+            % Compute the summation for K
+            for n=2:obj.nMax
+                % Initialize K_n for the current degree n
+                K_n = 0;
+
+                % Compute the summation for order m
+                for m = 1:n
+                    K_n = K_n + m*obj.Pnm(n+1,m+1) * ( obj.Sm(m)*obj.Cnm(n+1,m+1) - ...
+                        obj.Cm(m)*obj.Snm(n+1,m+1) );
+                end
+                % Accumulate the scaled sum into K
+                K = K + (obj.ref_radius/obj.r)^n*(-K_n);
+            end
+        end
+
         function L = getL(obj)
 
             L = 0;
@@ -244,8 +326,7 @@ classdef SH_gradient < matlab.System
                 Ln=0;
                 for m = 0:n
                     Ln = Ln + (n+m+1)*(n+m+2)*obj.Pnm(n+1,m+1)*...
-                        ( obj.Cm(m+1)*obj.Cnm(n+1,m+1) + obj.Sm(m+1)*obj.Snm(n+1,m+1) )/...
-                        obj.r^m;
+                        ( obj.Cm(m+1)*obj.Cnm(n+1,m+1) + obj.Sm(m+1)*obj.Snm(n+1,m+1) );
                 end
                 L = L + (obj.ref_radius/obj.r)^n*Ln;
             end
@@ -253,7 +334,7 @@ classdef SH_gradient < matlab.System
             L = L+2;
 
         end
-        
+
         function M = getM(obj)
 
             M = 0;
@@ -262,14 +343,13 @@ classdef SH_gradient < matlab.System
                 Mn=0;
                 for m = 0:n
                     Mn = Mn + obj.Znm(n+1,m+1)*obj.Pnm(n+1,m+3)*...
-                        ( obj.Cm(m+1)*obj.Cnm(n+1,m+1) + obj.Sm(m+1)*obj.Snm(n+1,m+1) )/...
-                        obj.r^m;
+                        ( obj.Cm(m+1)*obj.Cnm(n+1,m+1) + obj.Sm(m+1)*obj.Snm(n+1,m+1) );
                 end
                 M = M + (obj.ref_radius/obj.r)^n*Mn;
             end
 
         end
-    
+
         function N = getN(obj)
 
             N = 0;
@@ -278,8 +358,7 @@ classdef SH_gradient < matlab.System
                 Nn=0;
                 for m = 2:n
                     Nn = Nn + obj.Pnm(n+1,m+1) * m*(m-1) *...
-                        ( obj.Cm(m-1)*obj.Cnm(n+1,m+1) + obj.Sm(m-1)*obj.Snm(n+1,m+1) )/...
-                        obj.r^(m-2);
+                        ( obj.Cm(m-1)*obj.Cnm(n+1,m+1) + obj.Sm(m-1)*obj.Snm(n+1,m+1) );
                 end
                 N = N + (obj.ref_radius/obj.r)^n*Nn;
             end
@@ -294,8 +373,7 @@ classdef SH_gradient < matlab.System
                 Omega_n=0;
                 for m = 2:n
                     Omega_n = Omega_n + obj.Pnm(n+1,m+1) * m*(m-1) *...
-                        ( obj.Sm(m-1)*obj.Cnm(n+1,m+1) - obj.Cm(m-1)*obj.Snm(n+1,m+1) )/...
-                        obj.r^(m-2);
+                        ( obj.Sm(m-1)*obj.Cnm(n+1,m+1) - obj.Cm(m-1)*obj.Snm(n+1,m+1) );
                 end
                 Omega = Omega + (obj.ref_radius/obj.r)^n*Omega_n;
             end
@@ -309,15 +387,14 @@ classdef SH_gradient < matlab.System
 
                 Pn=0;
                 for m = 0:n
-                    Pn = Pn + obj.Pnm(n+1,m+2) * (m+n+1) * ...
-                        ( obj.Cm(m+1)*obj.Cnm(n+1,m+1) + obj.Sm(m+1)*obj.Snm(n+1,m+1) )/...
-                        obj.r^m;
+                    Pn = Pn + obj.zeta(n+1,m+1)*obj.Pnm(n+1,m+2) * (m+n+1) * ...
+                        ( obj.Cm(m+1)*obj.Cnm(n+1,m+1) + obj.Sm(m+1)*obj.Snm(n+1,m+1) );
                 end
                 P = P + (obj.ref_radius/obj.r)^n*Pn;
             end
 
         end
-        
+
         function Q = getQ(obj)
 
             Q = 0;
@@ -325,15 +402,14 @@ classdef SH_gradient < matlab.System
 
                 Qn=0;
                 for m = 1:n
-                    Qn = Qn + obj.Pnm(n+1,m+2) * m *...
-                        ( obj.Cm(m)*obj.Cnm(n+1,m+1) + obj.Sm(m)*obj.Snm(n+1,m+1) )/...
-                        obj.r^(m-1);
+                    Qn = Qn + obj.zeta(n+1,m+1)*obj.Pnm(n+1,m+2) * m *...
+                        ( obj.Cm(m)*obj.Cnm(n+1,m+1) + obj.Sm(m)*obj.Snm(n+1,m+1) );
                 end
                 Q = Q + (obj.ref_radius/obj.r)^n*Qn;
             end
 
         end
-        
+
         function R = getR(obj)
 
             R = 0;
@@ -341,15 +417,14 @@ classdef SH_gradient < matlab.System
 
                 Rn=0;
                 for m = 1:n
-                    Rn = Rn + obj.Pnm(n+1,m+2) * m *...
-                        ( obj.Sm(m)*obj.Cnm(n+1,m+1) - obj.Cm(m)*obj.Snm(n+1,m+1) )/...
-                        obj.r^(m-1);
+                    Rn = Rn + obj.zeta(n+1,m+1)*obj.Pnm(n+1,m+2) * m *...
+                        ( obj.Sm(m)*obj.Cnm(n+1,m+1) - obj.Cm(m)*obj.Snm(n+1,m+1) );
                 end
                 R = R + (obj.ref_radius/obj.r)^n*Rn;
             end
             R = -R;
         end
-        
+
         function S = getS(obj)
 
             S = 0;
@@ -358,15 +433,14 @@ classdef SH_gradient < matlab.System
                 Sn=0;
                 for m = 1:n
                     Sn = Sn + obj.Pnm(n+1,m+1) * m * (m+n+1) *...
-                        ( obj.Sm(m)*obj.Cnm(n+1,m+1) - obj.Cm(m)*obj.Snm(n+1,m+1) )/...
-                        obj.r^(m-1);
+                        ( obj.Sm(m)*obj.Cnm(n+1,m+1) - obj.Cm(m)*obj.Snm(n+1,m+1) );
                 end
                 S = S + (obj.ref_radius/obj.r)^n*Sn;
             end
 
         end
-        
-         function T = getT(obj)
+
+        function T = getT(obj)
 
             T = 0;
             for n = 2:obj.nMax
@@ -374,8 +448,7 @@ classdef SH_gradient < matlab.System
                 Tn=0;
                 for m = 1:n
                     Tn = Tn + obj.Pnm(n+1,m+1) * m * (m+n+1) *...
-                        ( obj.Sm(m)*obj.Cnm(n+1,m+1) - obj.Cm(m)*obj.Snm(n+1,m+1) )/...
-                        obj.r^(m-1);
+                        ( obj.Sm(m)*obj.Cnm(n+1,m+1) - obj.Cm(m)*obj.Snm(n+1,m+1) );
                 end
                 T = T + (obj.ref_radius/obj.r)^n*Tn;
             end

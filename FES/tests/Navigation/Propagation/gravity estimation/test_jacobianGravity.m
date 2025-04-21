@@ -5,7 +5,7 @@ classdef test_jacobianGravity < matlab.unittest.TestCase
 
         function test_jacobian(testCase)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  
+
             % Test data from R. G. Gottlieb, ‘Fast Gravity, Gravity
             % Partials, Normalized Gravity, Gravity Gradient Torque and
             % Magnetic Field: Derivation, Code and Data’.
@@ -29,14 +29,17 @@ classdef test_jacobianGravity < matlab.unittest.TestCase
             position = [5489150, 802222, 3140916]';
 
             % Compute the actual derivatives using the spherical harmonics model
-            [actual_dg] = fun.getDerivative(position);
+            [actual_g, actual_dg] = fun.getDerivative(position);
 
             % Expected Jacobian matrix
             expected_dg = [
                 1.87773230503190e-06,  4.99259374934480e-07,  1.96507472112557e-06;
                 4.99259374934480e-07, -1.46513564895359e-06,  2.87208844531796e-07;
                 1.96507472112557e-06,  2.87208844531796e-07, -4.12596656078305e-07
-            ];
+                ];
+
+            % Expected gravity acceleration values
+            expected_g = [-8.44260633555472;-1.23393243051834; -4.84652486332608];
 
             % Verify that the computed gravity matches the expected values within a tolerance
             verifyEqual(testCase,actual_dg,expected_dg,'RelTol',1e-15)

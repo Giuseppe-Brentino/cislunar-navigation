@@ -63,7 +63,7 @@ for i = 1:size(glgm3150,1)
     % Calculate zeta for m = 0 or m > 0
     if m == 0
         zeta(n+1,1) = sqrt(n*(n+1)/2);
-        Znm(n+1,m+1) = sqrt(0.5*n*(n-1)*(n+1)*(n+2));
+        Znm(n+1,m+1) = sqrt(n*(n-1)*(n+1)*(n+2)/2);
     else
         zeta(n+1,m+1) = sqrt( (n-m)*(n+m+1) );
         Znm(n+1,m+1) = sqrt((n-m)*(n-m-1)*(n+m+1)*(n+m+2));
@@ -83,8 +83,8 @@ TestData.SH.m.value = m;
 TestData.SH.csi.value = csi(1:n+1,1:n+1);
 TestData.SH.eta.value = eta(1:n+1,1:n+1);
 TestData.SH.zeta.value = zeta(1:n+1,1:n+1);
+TestData.SH.Znm.value = Znm(1:n+1,1:n+1);
 TestData.SH.Pnm.value = [1, 0, sqrt(3)];
-TestData.SH.Znm.value = Znm;
 TestData.SH.mu.value = 398600.47*1e9;
 TestData.SH.ref_radius.value = 6378139;
 
