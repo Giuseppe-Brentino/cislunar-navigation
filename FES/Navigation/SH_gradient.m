@@ -63,7 +63,7 @@ classdef SH_gradient < matlab.System
             % Compute coefficients
             H = getH(obj);
             Gamma = getGamma(obj);
-            Lambda = Gamma + x(3)*H/obj.r;
+            Lambda = Gamma + x(3)*H/obj.r + 1;
             L = getL(obj);
             M = getM(obj);
             N = getN(obj);
@@ -87,23 +87,14 @@ classdef SH_gradient < matlab.System
             K = getK(obj);
 
             % Compute acceleration due to spherical harmonics and point mass
-            Lambda = Gamma + x(3)*H/obj.r;
-
-            g_sh = -obj.mu/obj.r^2*(Lambda*X - [J;K;H]);
+            g_sh = -obj.mu/obj.r^2*((Lambda-1)*X - [J;K;H]);
             g_pm = -obj.mu/obj.r^2*X;
             g = g_sh+g_pm;
 
             % Compute derivatives
             dg_dx = obj.mu/obj.r^3 * ( [X, alpha]*[F G; G M] * [X';alpha'] + ...
                 [X, d]*[0 -1;-1 0]*[X'; d'] + ...
-                [N-Lambda, -Omega, Q; -Omega, -N-Lambda, R; Q, R, -Lambda ] );
-
-            dg_dx1 = obj.mu/obj.r^3*(L+M*x(3)^2/obj.r^2 + 2*P*x(3)/obj.r + Gamma ...
-                + 3*H*x(3)/obj.r)      *((x*x')/obj.r^2) - obj.mu/obj.r^3*(M*x(3)/obj.r ...
-                + P + H)*((x*alpha' + alpha*x')/obj.r) + obj.mu/obj.r^3*M*alpha*alpha' ...
-                - obj.mu/obj.r^3*(Gamma+x(3)/obj.r*H)*eye(3) + obj.mu/obj.r^3 * ...
-                ( (alpha*alpha'+alpha*alpha') - x(3)/obj.r^2*(alpha*x' + x*alpha') - ...
-                (Y*x'+x*Y')/obj.r + [N -Omega 0; -Omega -N 0; 0 0 0] );
+                [N-Lambda, -Omega, Q; -Omega, -(N+Lambda), R; Q, R, -Lambda ] );
 
         end
 
@@ -332,7 +323,7 @@ classdef SH_gradient < matlab.System
             end
 
             L = L+2;
-
+            
         end
 
         function M = getM(obj)
@@ -347,7 +338,7 @@ classdef SH_gradient < matlab.System
                 end
                 M = M + (obj.ref_radius/obj.r)^n*Mn;
             end
-
+            
         end
 
         function N = getN(obj)
@@ -392,7 +383,7 @@ classdef SH_gradient < matlab.System
                 end
                 P = P + (obj.ref_radius/obj.r)^n*Pn;
             end
-
+            
         end
 
         function Q = getQ(obj)
