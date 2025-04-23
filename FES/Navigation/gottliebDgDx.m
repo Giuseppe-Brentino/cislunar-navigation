@@ -1,8 +1,7 @@
-function [g,dgdx] = gottliebDgDx(mu, re, x, c, s, nax, max)
+function [g,dgdx] = gottliebDgDx(mu, re, x, c, s, nax, max,xi,eta)
 
 
-[xi,eta,zeta,upsilon,p,alpha,beta,nrdiag]  = getcoeffs(nax);
-
+[zeta,upsilon]  = getcoeffs(nax);
 
 r = norm(x);
 ri = 1/r;
@@ -15,6 +14,8 @@ reorn = reor;
 muor = mu*ri;
 muor2 = muor*ri;
 muor3 = muor2*ri;
+
+p = computeP(nax,max,ep,xi,eta);
 
 sum_init = 1;
 
@@ -38,8 +39,6 @@ sums = 0;
 sumt = 0;
 suml = 2*sum_init;
 
-p(2,1) = sqrt(3)*ep;
-
 for n = 2:nax
 
     ni = n+1;
@@ -61,9 +60,6 @@ for n = 2:nax
     pnm1 = p(nm1i,:);
     pnm2 = p(nm2i,:);
 
-    pn(1) = alpha(ni)*ep*pnm1(1) - beta(ni)*pnm2(1);
-    pn(nm1i) = ep*nrdiag(ni);
-    pn(2) = xin(2)*ep*pnm1(2)-etn(2)*pnm2(2);
     upsn = upsilon(ni,:);
     np1 = n+1;
     cn0 = cn(1);
@@ -76,10 +72,6 @@ for n = 2:nax
     suml_n = sumgam_n * (np1+1);
 
     if max > 0
-        for m = 2:nm2
-            mi = m+1;
-            pn(mi) = xin(mi)*ep*pnm1(mi)-etn(mi)*pnm2(mi);
-        end
 
         sumj_n = 0;
         sumk_n = 0;
@@ -192,37 +184,11 @@ dgdx(3,2) = temp;
 
 end
 
-function [xi,eta,zeta,upsilon,p,alpha,beta,nrdiag] = getcoeffs(nax)
+function [zeta,upsilon] = getcoeffs(nax)
 xi = zeros(nax+1,nax);
 eta = zeros(nax+1,nax);
 zeta = zeros(nax+1,nax+1);
 upsilon = zeros(nax+1,nax+1);
-p = zeros(nax+1,nax+3);
-alpha = zeros(nax+1,1);
-beta = zeros(nax+1,1);
-nrdiag = zeros(nax+1,1);
-
-% xi
-for n = 2:nax
-    for m = 0:n-1
-        num = (2*n-1)*(2*n+1);
-        den = (n+m)*(n-m);
-        xi(n+1,m+1) = sqrt(num/den);
-    end
-end
-
-% eta
-for n = 2:nax
-    for m = 0:n-1
-        num = (2*n+1)*(n+m-1)*(n-m-1);
-        den = (n+m)*(n-m)*(2*n-3);
-        if num == 0
-            eta(n+1,m+1) = 0;
-        else
-            eta(n+1,m+1) = sqrt(num/den);
-        end
-    end
-end
 
 % zeta
 for n = 2:nax
@@ -258,30 +224,33 @@ for n = 2:nax
     end
 end
 
-% p, alpha, beta, nrdiag
-p(1,1) = 1; 
+
+end
+
+
+
+function p = computeP(nax,max,ep,xi,eta)
+% Initialize Legendre polynomial matrix
+p = zeros(nax+1,max+3);
+
+% Base cases
+p(1,1) = 1;
 p(1,2) = 0;
-p(1,3) = 0;
+p(2,1) = sqrt(3)*ep;
 p(2,2) = sqrt(3);
-p(2,3) = 0;
-p(2,4) = 0;
 
+% Compute Legendre polynomials using recurrence relation
 for n = 2:nax
-    ni = n+1;
-    p(ni,ni) = sqrt((2*n+1)/(2*n))*p(n,n);
-    nrdiag(ni) = sqrt(2*n+1)*p(n,n);
-    num = (2*n+1)*(2*n-1);
-    alpha(ni) = sqrt(num)/n;
-    num = 2*n+1;
-    den = 2*n-3;
-    beta(ni) = sqrt(num/den)*(n-1)/n;
+    for m = 0:max
+        if n~=m
+            p(n+1,m+1) = xi(n+1,m+1)*ep*p(n,m+1) - ...
+                eta(n+1,m+1)*p(n-1,m+1);
+        else
+            p(n+1,m+1) = p(n,m)*sqrt( (2*n+1)/(2*n) );
+        end
+    end
 end
-
 end
-
-
-
-
 
 
 
