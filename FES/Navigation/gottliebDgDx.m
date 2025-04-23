@@ -1,4 +1,4 @@
-function dgdx = gottliebDgDx(mu, re, x, c, s, nax, max)
+function [g,dgdx] = gottliebDgDx(mu, re, x, c, s, nax, max)
 
 
 [xi,eta,zeta,upsilon,p,alpha,beta,nrdiag]  = getcoeffs(nax);
@@ -61,9 +61,6 @@ for n = 2:nax
     pnm1 = p(nm1i,:);
     pnm2 = p(nm2i,:);
 
-    alpha(ni) = sqrt((2*n+1)*(2*n-1))/n;
-    beta(ni) = (n-1)/n * sqrt((2*n+1)/(2*n-3));
-
     pn(1) = alpha(ni)*ep*pnm1(1) - beta(ni)*pnm2(1);
     pn(nm1i) = ep*nrdiag(ni);
     pn(2) = xin(2)*ep*pnm1(2)-etn(2)*pnm2(2);
@@ -124,7 +121,7 @@ for n = 2:nax
             sumv_n = sumv_n + pnmbnm;
 
             if m<n
-                z_pnmp1 = zn(mi)*pn(mp1);
+                z_pnmp1 = zn(mi)*pn(mp1+1);
                 sumh_n = sumh_n + z_pnmp1*bnmtil;
                 sump_n = sump_n + npmp1*z_pnmp1*bnmtil;
                 sumq_n = sumq_n + m*z_pnmp1*bnmtm1;
@@ -140,13 +137,13 @@ for n = 2:nax
 
             if m>=2
                 mm2 = m-2;
-                sumn_n = sumn_n + mm1*mxpnm*(cnm*ctil(mm2+1)-snm*stil(mm2+1));
+                sumn_n = sumn_n + mm1*mxpnm*(cnm*ctil(mm2+1)+snm*stil(mm2+1));
                 sumo_n = sumo_n + mm1*mxpnm*(cnm*stil(mm2+1)-snm*ctil(mm2+1));
             end
 
         end
 
-        sumj = sumj + reorn*sumj_n;
+        sumj = sumj + reorn * sumj_n;
         sumk = sumk + reorn * sumk_n;
         sumn = sumn + reorn * sumn_n;
         sumo = sumo + reorn * sumo_n;
@@ -157,7 +154,7 @@ for n = 2:nax
     end
 
     sumv = sumv+reorn*sumv_n;
-    sumh = sumh*reorn*sumh_n;
+    sumh = sumh + reorn*sumh_n;
     sumgam = sumgam + reorn*sumgam_n;
     suml = suml + reorn*suml_n;
     summ = summ + reorn*summ_n;
@@ -201,14 +198,15 @@ eta = zeros(nax+1,nax);
 zeta = zeros(nax+1,nax+1);
 upsilon = zeros(nax+1,nax+1);
 p = zeros(nax+1,nax+3);
-eta = zeros(nax+1,1);
+alpha = zeros(nax+1,1);
 beta = zeros(nax+1,1);
 nrdiag = zeros(nax+1,1);
+
 % xi
 for n = 2:nax
     for m = 0:n-1
         num = (2*n-1)*(2*n+1);
-        den = (n+m)/(n-m);
+        den = (n+m)*(n-m);
         xi(n+1,m+1) = sqrt(num/den);
     end
 end
@@ -216,7 +214,7 @@ end
 % eta
 for n = 2:nax
     for m = 0:n-1
-        num = (2*n+1)*(n+m+1)*(n-m-1);
+        num = (2*n+1)*(n+m-1)*(n-m-1);
         den = (n+m)*(n-m)*(2*n-3);
         if num == 0
             eta(n+1,m+1) = 0;
