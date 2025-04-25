@@ -1,4 +1,4 @@
-classdef test_jacobianGravity < matlab.unittest.TestCase
+classdef test_SH < matlab.unittest.TestCase
 
     methods(Test)
         % Test methods
