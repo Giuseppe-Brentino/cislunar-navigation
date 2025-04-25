@@ -45,6 +45,13 @@ classdef SH_nav < matlab.System
             % Initialize variables
             re = obj.ref_radius;% reference radius of the planet 
             r = norm(x);        % distance from the center of the planet
+
+            % Zero norm protection
+            if r<=0
+                x = [1e-6;1e-6;1e-6;];
+                r = norm(x);
+            end
+
             ri = 1/r;           % inverse if the distance
             xovr = x(1)*ri;     % x position over radius
             yovr = x(2)*ri;     % y position over radius
