@@ -45,10 +45,31 @@ initialStates();
 
 %% Navigation Data
 
-% Get Parameters
-nav = getParameters('Navigation.sldd',{'Propagation','R_sensor2body'});
+% Get spacecraft data
+sc = getParameters('Scenario.sldd',{'MainSpacecraft','BeaconSpacecraft'});
+MainSpacecraft = sc{1};
+BeaconSpacecraft = sc{2};
+
+% Get IMU data
+imu = getParameters('Sensors.sldd',{'IMU'});
+imu_angles = imu{1}.orientation.value;
+
+% Get clock data
+clock = getParameters('Sensors.sldd',{'clock'});
+% Get NAV Parameters
+nav = getParameters('Navigation.sldd',{'Propagation','R_sensor2body','P0'});
 Propagation = nav{1};
 R_sensor2body = nav{2};
+P0 = nav{3};
+P0.value(1:3,1:3) = diag(MainSpacecraft.x0.std.^2);
+P0.value(4:6,4:6) = diag(MainSpacecraft.v0.std.^2);
+P0.value(7:9,7:9) = diag(ones(3,1)*deg2rad(0.5)^2);
+P0.value(10:12,10:12) = diag(BeaconSpacecraft.x0.std.^2);
+P0.value(13:15,13:15) = diag(BeaconSpacecraft.v0.std.^2);
+P0.value(16:18,16:18) = diag(ones(3,1)*imu{1}.accelerometer.bias.std^2);
+P0.value(19:21,19:21) = diag(ones(3,1)*imu{1}.gyroscope.bias.std^2);
+P0.value(22,22) = (Environment.c.value*clock{1}.deltaT0.std)^2;
+P0.value(23,23) = (Environment.c.value*clock{1}.deltaT1.std)^2;
 
 % Update starting date
 StartDate = Environment.Date; 
@@ -75,17 +96,12 @@ Propagation.Moon.SH.Snm.value = Environment.Moon.SH.Snm.value...
 Propagation.Moon.SH.Znm.value = Environment.Moon.SH.Znm.value...
     (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
 
-
-
-% Get IMU orientation angles
-imu = getParameters('Sensors.sldd',{'IMU'});
-imu_angles = imu{1}.orientation.value;
- 
+% Update IMU orientation
 R_sensor2body.value = angle2dcm(imu_angles(3),imu_angles(2),imu_angles(1),'ZXZ')';
 
 % Update dictionary
-updateParameters('Navigation.sldd',{'StartDate','Propagation','R_sensor2body'},...
-    {StartDate,Propagation,R_sensor2body},true)
+updateParameters('Navigation.sldd',{'StartDate','Propagation','R_sensor2body','P0'},...
+    {StartDate,Propagation,R_sensor2body,P0},true)
 
 end
 
