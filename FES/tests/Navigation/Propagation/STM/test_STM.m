@@ -89,8 +89,8 @@ classdef test_STM < matlab.unittest.TestCase
 
             % Initialize and populate Jacobian (F matrix)
             F = zeros(23);
-            F(1:3,4:6) = eye(3);             % d(velocity_m)/d(velocity_m)
-            F(4:6,7:9) = -R * ax;                     % d(acceleration_m)/d(attitude_m)
+            F(1:3,4:6) = eye(3);                      % d(velocity_m)/d(velocity_m)
+            F(4:6,7:9) = -R * ax*1e-3;                % d(acceleration_m)/d(attitude_m)
             F(7:9,7:9) = -wx;                         % d(angular velocity_b)/d(attitude_m)
             F(10:12,13:15) = eye(3);                  % d(velocity_b)/d(velocity_b)
             F(22,23) = 1;                             % d(clock drift)/d(clock drift)
