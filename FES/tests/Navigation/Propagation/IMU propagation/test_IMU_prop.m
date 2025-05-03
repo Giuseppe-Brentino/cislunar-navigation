@@ -17,37 +17,49 @@ classdef test_IMU_prop < matlab.unittest.TestCase
         % Test methods
 
         function test_gyro_integration(testCase)
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Test integration accuracy of different gyroscope integration
-            % methods.
-            % Compares the integration error of Forward Euler, Trapezoidal,
-            % and coning correction methods with respect to ground truth
-            % angles.
-            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-            % Extract data
-            time = testCase.data.real_angles.Time;
-            real_angles = testCase.data.real_angles.Data;
-            FE_angles = testCase.data.fe_angles.Data;
-            trapz_angles = testCase.data.trapz_angles.Data;
-            coning_angles = testCase.data.coning_angles.Data;
-
-            % Compute angular errors
-            FE_error = angdiff(real_angles,FE_angles);
-            trapz_error = angdiff(real_angles,trapz_angles);
-            coning_error = angdiff(real_angles,coning_angles);
-
-            % Compute integrated error (absolute error over time)
-            FE_errInt = trapz(time,abs(FE_error));
-            trapz_errInt = trapz(time,abs(trapz_error));
-            coning_errInt = trapz(time,abs(coning_error));
-
-            % Verify that coning correction yields smallest error
-            testCase.verifyGreaterThan(FE_errInt,coning_errInt)
-            testCase.verifyGreaterThan(trapz_errInt,coning_errInt)
-        
+            % Test that the integration of the gyroscope gives acceptable
+            % results
+            actual_ori = squeeze(testCase.data.actual_ori);
+            expected_ori = squeeze(testCase.data.expected_ori);
+            orientation_error = angdiff(actual_ori,expected_ori);
+            testCase.verifyEqual(orientation_error,orientation_error*0,'absTol',1e-8)
         end
-        
+
+        function test_acc_integration(testCase)
+            % Test that the integration of the accelerometer gives acceptable
+            % results
+            v_error = squeeze(testCase.data.v_error) ;
+            testCase.verifyEqual(v_error,v_error*0,'absTol',1e-13)
+        end
+
+        function test_mean_meas(testCase)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % Test mean sensor measurement calculation.
+            % Validates that computed mean accelerometer and gyroscope 
+            % values match the expected mean over 6-sample windows from 
+            % input sensor data.
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            
+             % Extract relevant input and output data from test case structure
+            input = squeeze(testCase.data.mean_in(:,:,2:end));
+            mean_acc = squeeze(testCase.data.mean_acc(:,:,2:end));
+            mean_gyro = squeeze(testCase.data.mean_omega(:,:,2:end));
+
+            % Initialize expected output array
+            expected_mean = zeros(3,size(mean_acc,2)-1);
+
+            % Compute expected means over 6-sample windows
+            j=0;
+            for i =6:6:length(input)
+                j=j+1;
+                expected_mean(:,j) = mean((input(:,i-5:i)),2);
+            end
+
+            % Verify the computed means match expected results
+            testCase.verifyEqual(mean_acc,expected_mean,'absTol',1e-15)
+            testCase.verifyEqual(mean_gyro,expected_mean,'absTol',1e-15)
+        end
+
     end
 
 end
