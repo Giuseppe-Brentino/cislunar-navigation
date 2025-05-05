@@ -1,11 +1,120 @@
+close all;
+clearvars;
+clc;
+
 %% Get gravity data
 
 % Run simulation
 out = sim("GravityModel.slx");
 
 % get gravity error
-main_err = squeeze(out.main_diff);
-beacon_err = squeeze(out.beacon_diff);
+main_err = 1e3*squeeze(out.main_diff);
+beacon_err = 1e3*squeeze(out.beacon_diff);
+
+
+%% FIT
+
+% main
+[sm1,~] = mle(main_err(1,:)','pdf',@(x,sigma) pdf('normal',main_err(1,:)',0,sigma),...
+    'start',std(main_err(1,:)));
+[sm2,~] = mle(main_err(2,:)','pdf',@(x,sigma) pdf('normal',main_err(2,:)',0,sigma),...
+    'start',std(main_err(2,:)));
+[sm3,~] = mle(main_err(3,:)','pdf',@(x,sigma) pdf('normal',main_err(3,:)',0,sigma),...
+    'start',std(main_err(3,:)));
+
+% Beacon
+[sb1,~] = mle(beacon_err(1,:)','pdf',@(x,sigma) pdf('normal',beacon_err(1,:)',0,sigma),...
+    'start',std(beacon_err(1,:)));
+[sb2,~] = mle(beacon_err(2,:)','pdf',@(x,sigma) pdf('normal',beacon_err(2,:)',0,sigma),...
+    'start',std(beacon_err(2,:)));
+[sb3,~] = mle(beacon_err(3,:)','pdf',@(x,sigma) pdf('normal',beacon_err(3,:)',0,sigma),...
+    'start',std(beacon_err(3,:)));
+%% Plots
+figure
+
+sgtitle('main error')
+x = linspace(-5e-4,5e-4,500);
+subplot(3,1,1)
+hold on 
+grid on
+title('g_x')
+histogram(main_err(1,:),100,'Normalization', 'pdf')
+plot(x,normpdf(x,0,sm1),"LineWidth",2)
+xlabel('gravity error [m/s^2]')
+ylabel('PDF')
+
+subplot(3,1,2)
+hold on 
+grid on
+title('g_y')
+histogram(main_err(2,:),100,'Normalization', 'pdf')
+plot(x,normpdf(x,0,sm2),"LineWidth",2)
+xlabel('gravity error [m/s^2]')
+ylabel('PDF')
+
+subplot(3,1,3)
+hold on 
+grid on
+title('g_z')
+histogram(main_err(3,:),100,'Normalization', 'pdf')
+plot(x,normpdf(x,0,sm3),"LineWidth",2)
+xlabel('gravity error [m/s^2]')
+ylabel('PDF')
+lgd = legend('error','fitted zero mean gaussian','Orientation','horizontal');
+lgd.Position = [0.35 0 0.3 0.05];  % Manually position at bottom center
+
+figure
+sgtitle('beacon error')
+x = linspace(-1e-5,8e-6,500);
+subplot(3,1,1)
+hold on 
+grid on
+title('g_x')
+histogram(beacon_err(1,:),100,'Normalization', 'pdf')
+plot(x,normpdf(x,0,sb1),"LineWidth",2)
+xlabel('gravity error [m/s^2]')
+ylabel('PDF')
+
+subplot(3,1,2)
+hold on 
+grid on
+title('g_y')
+histogram(beacon_err(2,:),100,'Normalization', 'pdf')
+h3 = plot(x,normpdf(x,0,sb2),"LineWidth",2);
+xlabel('gravity error [m/s^2]')
+ylabel('PDF')
+
+subplot(3,1,3)
+hold on 
+grid on
+title('g_z')
+histogram(beacon_err(3,:),100,'Normalization', 'pdf');
+plot(x,normpdf(x,0,sb3),"LineWidth",2);
+xlabel('gravity error [m/s^2]')
+ylabel('PDF')
+lgd = legend('error','fitted zero mean gaussian','Orientation','horizontal');
+lgd.Position = [0.35 0 0.3 0.05];  
+
+%% Save Q matrix
+sensorData = getParameters('Sensors.sldd',{'IMU','clock'});
+acc = sensorData{1}.accelerometer;
+gyro = sensorData{1}.gyroscope;
+clock = sensorData{2};
+env = getParameters('Scenario.sldd',{'Environment'});
+c = env{1}.c.value*1e-3;
+
+Q = struct();
+Q.description = 'Process noise matrix';
+Q.value = zeros(20);
+Q.value(1:3,1:3) = diag(([sm1,sm2,sm3]*1e-3).^2);
+Q.value(4:6,4:6) = diag(([sb1,sb2,sb3]*1e-3).^2);
+Q.value(7:9,7:9) = diag((ones(3,1)*acc.N.value*1e-3).^2);
+Q.value(10:12,10:12) = diag((ones(3,1)*acc.K.value*1e-3).^2);
+Q.value(13:15,13:15) = diag((ones(3,1)*gyro.N.value*1e-3).^2);
+Q.value(16:18,16:18) = diag((ones(3,1)*gyro.K.value*1e-3).^2);
+Q.value(19,19) = (clock.K.value*c)^2;
+Q.value(20,20) = 0;
+updateParameters('Navigation.sldd',{'Q'},{Q},true);
 
 %% Define F
 
@@ -42,21 +151,21 @@ PSI = sym(eye(23)) + F*dt;
 %% Define Q
 syms eta_gm eta_gb eta_acc eta_accB eta_gyro eta_gyroB eta_clockD eta_clockA real
 
-Q = sym(zeros(19));
+QSym = sym(zeros(20));
 
-Q(block(1), block(1)) = diag(eta_gm*ones(3,1));
-Q(block(2), block(2)) = diag(eta_gb*ones(3,1));
-Q(block(3), block(3)) = diag(eta_acc*ones(3,1));
-Q(block(4), block(4)) = diag(eta_accB*ones(3,1));
-Q(block(5), block(5)) = diag(eta_gyro*ones(3,1));
-Q(block(6), block(6)) = diag(eta_gyroB*ones(3,1));
-Q(18,18) = eta_clockD;
-Q(19,19) = eta_clockA;
+QSym(block(1), block(1)) = diag(eta_gm*ones(3,1));
+QSym(block(2), block(2)) = diag(eta_gb*ones(3,1));
+QSym(block(3), block(3)) = diag(eta_acc*ones(3,1));
+QSym(block(4), block(4)) = diag(eta_accB*ones(3,1));
+QSym(block(5), block(5)) = diag(eta_gyro*ones(3,1));
+QSym(block(6), block(6)) = diag(eta_gyroB*ones(3,1));
+QSym(19,19) = eta_clockD;
+QSym(20,20) = eta_clockA;
 
 %% Define G
 syms R_bi R_sb [3 3] real
 
-G = sym(zeros(23,19));
+G = sym(zeros(23,20));
 
 G(block(2), block(1)) = eye(3);
 G(block(2), block(3)) = R_bi*R_sb;
@@ -64,11 +173,15 @@ G(block(3), block(5)) = -R_sb;
 G(block(5), block(2)) = eye(3);
 G(block(6), block(4)) = eye(3);
 G(block(7), block(6)) = eye(3);
-G(22,18) = 1;
-G(23,19) = 1;
+G(22,19) = 1;
+G(23,20) = 1;
 %% Process noise
 
-process_noise = simplify((PSI*G)*Q*dt*(PSI*G)');
+process_noise = simplify((PSI*G)*QSym*dt*(PSI*G)');
 save process_noise process_noise
 
+%% Simplified process noise
 
+Pn_simp = computeProcessNoise(dt, PSI, R_bi, R_sb, QSym);
+
+% simplify(process_noise-Pn_simp)
