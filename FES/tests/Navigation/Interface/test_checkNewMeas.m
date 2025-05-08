@@ -28,9 +28,9 @@ classdef test_checkNewMeas < matlab.unittest.TestCase
             actual_flag = simulation.flag;
 
             % Expected results
-            expected_flag = [false false true false false false true]';
+            expected_flag = [true false true false false false true]';
             expected_time = [0;0;1;1;1;1;4];
-            expected_measure = [0,0;0,0;2,2;2,2;2,2;2,2;4,4];
+            expected_measure = [1,1;1,1;2,2;2,2;2,2;2,2;4,4];
 
             % Assertions
             testCase.verifyEqual(actual_flag,expected_flag)
