@@ -12,12 +12,12 @@ OM = deg2rad(90);
 om = 0;
 th = 0;
 
-a = 15737.4;
-e = 0.61;
-i = deg2rad(57.83);
-OM = deg2rad(111.55);
-om = 90;
-th = 0;
+% a = 15737.4;
+% e = 0.61;
+% i = deg2rad(57.83);
+% OM = deg2rad(15.55);
+% om = 90;
+% th = 0;
 
 OrbitCtrl = getParameters('Scenario.sldd',{'OrbitCtrl'});
 OrbitCtrl{1}.target_i.value = rad2deg(i);
