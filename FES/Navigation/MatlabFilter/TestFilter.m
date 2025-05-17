@@ -9,13 +9,15 @@ x0 = params{1}.value;
 P0 = params{2}.value;
 Propagation = params{3};
 startDate = params{4};
-Q = params{5}.value;
-
+Q = params{5}.value(1:6,1:6);
+Q(4:6,4:6) =  Q(4:6,4:6);
+Q(1:3,1:3) =  Q(1:3,1:3);
 %% Measurements from simulations
 data = load('testData.mat');
 range.value = data.out.Radio.range_PN.Data;
 range.time = data.out.Radio.range_PN.Time;
-
+rangerate.value = data.out.Radio.range_rate.Data;
+rangerate.time = data.out.Radio.range_rate.Time;
 %% Sim data
 time = data.out.tout;
 xm.value = squeeze(data.out.x_main.Data);
@@ -35,6 +37,9 @@ k = 1;
 
 x = x_tot(:,1);
 P = P_tot(:,:,1);
+real_xm(:,1) = xm.value(:,1);
+real_xb(:,1) = xb.value(:,1);
+
 for i = 2:length(time)
    
     if mod(time(i),1/Propagation.lf.value) == 0
@@ -43,20 +48,29 @@ for i = 2:length(time)
         %
         real_xm(:,j) = xm.value(:,i);
         real_xb(:,j) = xb.value(:,i);
-        % Propagation step
-        [x,P] = propagate(x,P,Propagation,Q(1:6,1:6),startDate,time(i-1));
 
-        % Correction step
+        % Propagation step
+        
+        [x,P] = propagate(x,P,Propagation,Q,startDate,time(i-1));
+
+        % Correction range
         if range.value(i) ~= range.value(i-1)
-            R = (2e-3)^2;
+            R = (5e-3)^2;
             [x,P] = correctRange(x,P,R,range.value(i));
 
-            meas_est(k) = range.value(i)*1e-3 - norm(x(1:3) - x(7:9));
-            meas_real(k) = range.value(i)*1e-3 - norm(xm.value(:,i) - xb.value(:,i));
-            est_real(k) = norm(x(1:3) - x(7:9)) - norm(xm.value(:,i) - xb.value(:,i));
-            ty(k) = time(i);
+            % meas_est(k) = range.value(i)*1e-3 - norm(x(1:3) - x(7:9));
+            % meas_real(k) = range.value(i)*1e-3 - norm(xm.value(:,i) - xb.value(:,i));
+            % est_real(k) = norm(x(1:3) - x(7:9)) - norm(xm.value(:,i) - xb.value(:,i));
+            % ty(k) = time(i);
             k = k+1;
         end
+
+        % Correction range rate
+         if rangerate.value(i) ~= rangerate.value(i-1)
+            R = (2e-6)^2;
+            [x,P] = correctRangeRate(x,P,R,rangerate.value(i));
+        end
+
 
     end
     
@@ -65,21 +79,31 @@ for i = 2:length(time)
     t_tot(:,j) = time(i);
 
 end
-%%
  
+% figure
+% hold on
+% grid on
+% plot(ty,meas_est)
+% % plot(ty,meas_real)
+% plot(ty,-est_real)
+% legend('meas-est', 'real-est')
+
+main_cov = zeros(size(P,3),1);
+beacon_cov = zeros(size(P,3),1);
+for i=1:size(P_tot,3)
+    main_cov(i) = 3*norm(diag(P_tot(1:3,1:3,i)));
+    beacon_cov(i) = 3*norm(diag(P_tot(7:9,7:9,i)));
+end
+
 figure
 hold on
 grid on
-plot(ty,meas_est)
-% plot(ty,meas_real)
-plot(ty,-est_real)
-legend('meas-est', 'meas-real', 'est-real')
-
-
-figure
-hold on
-grid on
-plot(t_tot,x_tot(1,:)-real_xm(1,:),'b')
-plot(t_tot,x_tot(7,:)-real_xb(1,:),'r')
-legend ('error xm','','', 'error xb')
-ylim([-100 300])
+plot(t_tot,vecnorm(x_tot(1:3,:)-real_xm,2,1),'b')
+plot(t_tot,vecnorm(x_tot(7:9,:)-real_xb,2,1),'r')
+plot(t_tot,3*[main_cov;-main_cov],'k')
+plot(t_tot,3*[beacon_cov;-beacon_cov],'g')
+legend ('Position error sc1','Position error sc2','Position sc1 3\sigma','',...
+    'Position sc2 3\sigma')
+ylim([-100 400])
+xlabel('Time [s]')
+ylabel('Position error [km]')
