@@ -4,7 +4,7 @@ function [x,P] = propagate(x_prev,P_prev,Propagation,Q,date,time)
 
 % time
 jd = time2JD(date,time);
-julian_centuries = (jd+2451545)/36525;
+julian_centuries = (jd-2451545)/36525;
 
 % Earth Position
 x_e_parts = Propagation.Earth.amp.value.*sin(Propagation.Earth.phase.value + ...
