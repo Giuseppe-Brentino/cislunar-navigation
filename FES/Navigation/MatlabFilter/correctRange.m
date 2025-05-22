@@ -11,7 +11,7 @@ M =  eye(3)-u*u';
 Hess = 1/y_hat * [M zeros(3) -M zeros(3);zeros(3,12); -M zeros(3) M zeros(3); zeros(3,12)];
 c = 3*norm(Hess)^2;
 tP = c/2 * trace(P_prev([1:3,7:9],[1:3,7:9]))^2;
-if tP > 1e-4*R
+if tP > 0.2*R
     beta =  1e1*tP / (trace(H*P_prev*H'));
 else
     beta = 0;

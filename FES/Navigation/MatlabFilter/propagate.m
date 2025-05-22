@@ -11,6 +11,17 @@ x_e_parts = Propagation.Earth.amp.value.*sin(Propagation.Earth.phase.value + ...
     julian_centuries.*Propagation.Earth.freq.value);
 x_e = sum(x_e_parts,2);
 
+% y = date.year;
+% m = date.month;
+% d = date.day;
+% h = date.hour;
+% min = date.min;
+% s = date.sec+time;
+% startDate = datetime(y,m,d,h,min,s);
+% et =  cspice_str2et( char(startDate ) );
+% [xx,~] = cspice_spkezr('EARTH', et, 'J2000', 'NONE', 'MOON');
+% x_e = xx(1:3);
+%%
 % Moon orientation
 moon_angles = Propagation.Moon.eul0.value + time*Propagation.Moon.eul_dot.value;
 MPA = angle2dcm(moon_angles(3),moon_angles(2),moon_angles(1),"ZXZ");
@@ -38,15 +49,18 @@ dgdx = MPA'*dgdx_rot*MPA;
 gm_main = MPA'*gm_rot;
 ge_main = -Propagation.Earth.mu.value*(x_e/norm(x_e)^3 + (x_prev(1:3)-x_e)/norm(x_prev(1:3)-x_e)^3 );
 
-%% Update velocities
-x = zeros(12,1);
+ [~, x] = ode4(@odefun, [time time+0.2],x_prev,SH,Propagation,date);
+x=x(end,:)';
 
-x(4:6) = x_prev(4:6) + (gm_main+ge_main)/Propagation.lf.value;
-x(10:12) = x_prev(10:12) + (gm_beacon+ge_beacon)/Propagation.lf.value;
-
-%% Update positions
-x(1:3) = x_prev(1:3) + 0.5*(x(4:6)+x_prev(4:6))/Propagation.lf.value;
-x(7:9) = x_prev(7:9) + 0.5*(x(10:12)+x_prev(10:12))/Propagation.lf.value;
+% %% Update velocities
+% x = zeros(12,1);
+% 
+% x(4:6) = x_prev(4:6) + (gm_main+ge_main)/Propagation.lf.value;
+% x(10:12) = x_prev(10:12) + (gm_beacon+ge_beacon)/Propagation.lf.value;
+% 
+% %% Update positions
+% x(1:3) = x_prev(1:3) + 0.5*(x(4:6)+x_prev(4:6))/Propagation.lf.value;
+% x(7:9) = x_prev(7:9) + 0.5*(x(10:12)+x_prev(10:12))/Propagation.lf.value;
 
 %% STM
 STM = zeros(12);
