@@ -1,6 +1,19 @@
 clearvars;
 close all;
 clc;
+
+%% Measurements from simulations
+% data = load('testData.mat');
+
+load bodiesPos.mat
+
+rng('default')
+data.out = sim('Simulator');
+range.value = data.out.Radio.range_PN.Data;
+range.time = data.out.Radio.range_PN.Time;
+rangerate.value = data.out.Radio.range_rate.Data;
+rangerate.time = data.out.Radio.range_rate.Time;
+
 %% Filter parameters
 
 params = getParameters('Navigation.sldd',{'x0','P0','Propagation','StartDate','Q'});
@@ -10,16 +23,14 @@ P0 = params{2}.value;
 Propagation = params{3};
 startDate = params{4};
 Q = params{5}.value(1:6,1:6);
-Q(4:6,4:6) =  Q(4:6,4:6)*10;
-Q(1:3,1:3) =  Q(1:3,1:3)*1000;
-%% Measurements from simulations
-% data = load('testData.mat');
-rng('default')
-data.out = sim('Simulator');
-range.value = data.out.Radio.range_PN.Data;
-range.time = data.out.Radio.range_PN.Time;
-rangerate.value = data.out.Radio.range_rate.Data;
-rangerate.time = data.out.Radio.range_rate.Time;
+Q(4:6,4:6) =  Q(4:6,4:6)*1e1;
+Q(1:3,1:3) =  Q(1:3,1:3)*5e2;
+% STM_G = zeros(12,6);
+% STM_G(4:6,1:3) = eye(3);
+% STM_G(1:3,1:3) = diag(ones(3,1)/Propagation.lf.value);
+% STM_G(7:12,4:6) = [diag(ones(3,1)/Propagation.lf.value);eye(3);];
+% Q = (STM_G)*Q*(STM_G)' ./ Propagation.lf.value;
+R = diag([(7e-3)^2 (4e-4)^2]);
 %% Sim data
 time = data.out.tout;
 xm.value = squeeze(data.out.x_main.Data);
@@ -31,18 +42,18 @@ xb.time = squeeze(data.out.x_beacon.Time);
 vb.value = squeeze(data.out.v_beacon.Data);
 vb.time = squeeze(data.out.v_beacon.Time);
 %% Filter IC
-time = time(time<36000);
-x_tot = zeros(12,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-P_tot = zeros(12,12,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-t_tot = zeros(1,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
+% time = time(time<=3600*24*6);
+x_tot = zeros(12,floor(length(time)/6));
+P_tot = zeros(12,12,floor(length(time)/6));
+t_tot = zeros(1,floor(length(time)/6));
 
-real_xm = zeros(3,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-real_xb = zeros(3,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-real_vm = zeros(3,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-real_vb = zeros(3,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-meas_range = zeros(1,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-meas_rangeRate = zeros(1,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
-est_rangeRate = zeros(1,floor(length(time)/(Propagation.hf.value/Propagation.lf.value)));
+real_xm = zeros(3,floor(length(time)/6));
+real_xb = zeros(3,floor(length(time)/6));
+real_vm = zeros(3,floor(length(time)/6));
+real_vb = zeros(3,floor(length(time)/6));
+meas_range = zeros(1,floor(length(time)/2));
+meas_rangeRate = zeros(1,floor(length(time)/6));
+est_rangeRate = zeros(1,floor(length(time)/6));
 
 x_tot(:,1) = x0([1:6 11:16]);
 P_tot(:,:,1) = P0([1:6 10:15],[1:6 10:15]);
@@ -70,7 +81,7 @@ cspice_furnsh(strcat(folder,'\..\..\Data\naif0012.tls'));
 cspice_furnsh(strcat(folder,'\..\..\Data\de421.bsp'));
 %% FILTER
 for i = 2:length(time)
-
+    
     if mod(time(i),1/Propagation.lf.value) == 0
         j = j+1;
 
@@ -87,20 +98,20 @@ for i = 2:length(time)
 
         % Correction
         if range.value(i) ~= range.value(i-1) && rangerate.value(i) ~= rangerate.value(i-1)
-            R = diag([(5e-3)^2 (2e-4)^2]);
-            [x,P] = correctRadio(x,P,R,[range.value(i),rangerate.value(i)]);
+             [x,P,s] = correctRadio(x,P,R,[range.value(i),rangerate.value(i)],Q);
+             % S(:,:,j-1) = s;
         else
             if range.value(i) ~= range.value(i-1)
-                R = (5e-3)^2;
-                [x,P] = correctRange(x,P,R,range.value(i));
+                [x,P,~] = correctRange(x,P,R(1,1),range.value(i),Q);
             end
             if rangerate.value(i) ~= rangerate.value(i-1)
                 R = (2e-4)^2;
-                [x,P] = correctRangeRate(x,P,R,rangerate.value(i));
+                [x,P,~] = correctRangeRate(x,P,R(2,2),rangerate.value(i),Q);
             end
         end
 
         est_rangeRate(j) = (x(1:3)-x(7:9))'*(x(4:6)-x(10:12)) / norm(x(1:3)-x(7:9));
+        
         x_tot(:,j) = x;
         P_tot(:,:,j) = P;
         t_tot(:,j) = time(i);
@@ -166,7 +177,7 @@ plot(t_tot/3600,x_tot(9,:)-real_xb(3,:))
 plot(t_tot/3600,[beacon_cov_x(:,3),-beacon_cov_x(:,3)],'r--')
 xlabel('Time [h]')
 ylabel('Beacon error z [km]')
-
+% savefig(gcf,'..\..\..\..\..\..\..\PROVE\test1POS.fig')
 %%%%% VEL
 figure
 hold on
@@ -213,9 +224,9 @@ plot(t_tot/3600,(x_tot(12,:)-real_vb(3,:))*1000)
 plot(t_tot/3600,[beacon_cov_v(:,3),-beacon_cov_v(:,3)]*1000,'r--')
 xlabel('Time [h]')
 ylabel('Beacon error z [m/s]')
+% savefig(gcf,'..\..\..\..\..\..\..\PROVE\test1VEL.fig')
 
 
-%%
 est_meas = vecnorm(x_tot(1:3,2:50:end)-x_tot(7:9,2:50:end),2,1)*1e3-meas_range(2:50:end);
 real_meas = vecnorm(real_xm(:,2:50:end)-real_xb(:,2:50:end),2,1)*1e3-meas_range(2:50:end);
 figure
@@ -223,7 +234,7 @@ hold on
 grid on
 plot(t_tot(2:50:end)/(3600),est_meas,'b.')
 plot(t_tot(2:50:end)/3600,real_meas,'r.')
-legend('Real minus Measured range', 'Real minus Measured range')
+legend('Est minus Measured range', 'Real minus Measured range')
 ylabel('m')
 xlabel('h')
 ylim([-30 30])
@@ -235,3 +246,7 @@ plot(t_tot(2:50:end)/(3600),est_rangeRate(2:50:end)*1e3-meas_rangeRate(2:50:end)
 legend('Estimated minus Measured range rate')
 ylabel('m/s')
 xlabel('h')
+% 
+save '..\..\..\..\..\..\..\PROVE\test_I_OM0_20gg.mat' t_tot x_tot real_xm real_xb...
+    real_vm real_vb main_cov_x beacon_cov_x main_cov_v ...
+beacon_cov_v  %time range rangerate

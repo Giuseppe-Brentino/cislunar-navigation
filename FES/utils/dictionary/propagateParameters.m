@@ -25,6 +25,8 @@ Environment.Moon.orientation_dot = eul_dot;
 Environment.Moon.jd_interval = jd_interval;
 
 % Update the Moon's spherical harmonics coefficients
+Environment.Moon.SH.n.value = 15;
+Environment.Moon.SH.m.value = 15;
 n = Environment.Moon.SH.n.value;
 m = Environment.Moon.SH.n.value;
 [csi, eta, zeta, Cnm, Snm, Znm, TestData] = computeSHCoeffs(n,m);
@@ -37,6 +39,7 @@ Environment.Moon.SH.Cnm.value = Cnm;
 Environment.Moon.SH.Snm.value = Snm;
 Environment.Moon.SH.Znm.value = Znm;
 
+Environment.Date.day = 1;
 % Update the dictionary with the modified 'Environment' and 'TestData' fields
 updateParameters('Scenario.sldd',{'Environment','TestData'},{Environment,TestData},true);
 
@@ -85,6 +88,8 @@ Propagation.Moon.eul_dot.value = mean(eul_dot.value,1);
 Propagation.Moon.eul_dot.unit = 'rad/s';
 Propagation.Moon.eul_dot.description = 'Time derivative of the ZXZ rotation angles from J2000 to MOON_PA';
 
+Propagation.Moon.SH.m.value = 10;
+Propagation.Moon.SH.n.value= 10;
 Propagation.Moon.SH.csi.value = Environment.Moon.SH.csi.value...
     (1:Propagation.Moon.SH.n.value+1,1:Propagation.Moon.SH.m.value+1);
 Propagation.Moon.SH.eta.value = Environment.Moon.SH.eta.value...

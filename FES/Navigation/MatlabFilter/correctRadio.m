@@ -1,4 +1,4 @@
-function [x,P] = correctRadio(x_prev,P_prev,R,y_meas)
+function [x,P,S] = correctRadio(x_prev,P_prev,R,y_meas,Q)
 
 % expected range
 dx = x_prev(1:3) - x_prev(7:9);
@@ -17,9 +17,11 @@ H(2,4:6) = u;
 H(2,7:9) = -H(2,1:3);
 H(2,10:12) = -u;
 
-K = P_prev*H'/(H*P_prev*H'+ R);
-x = x_prev + K*(y_meas*1e-3 - y_hat)';
+S = (H*P_prev*H'+ R);
+K = P_prev*H'/S;
+d = (y_meas*1e-3 - y_hat)';
+x = x_prev + K*d;
 P = (eye(12)-K*H)*P_prev*(eye(12)-K*H)' + K*R*K';
-
+% Q = 0.4*Q + 0.6*K*(d*d')*K';
 end
 

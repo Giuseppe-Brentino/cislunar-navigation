@@ -35,14 +35,14 @@ mu_s = 1.32712440018e+11; %km^3/s^2
 % Beacon
 gm_beacon = -Propagation.Moon.mu.value*x(7:9)/norm(x(7:9))^3;
 ge_beacon = -Propagation.Earth.mu.value*(x_e/norm(x_e)^3 + (x(7:9)-x_e)/norm(x(7:9)-x_e)^3 );
-gs_beacon =0;%-mu_s*(x_s/norm(x_s)^3 + (x(7:9)-x_s)/norm(x(7:9)-x_s)^3 );
+gs_beacon = -mu_s*(x_s/norm(x_s)^3 + (x(7:9)-x_s)/norm(x(7:9)-x_s)^3 );
 
 % Main
 x_rot = MPA*x(1:3);
 [gm_rot, ~] = SH.getDerivative(x_rot);
 gm_main = MPA'*gm_rot;
 ge_main = -Propagation.Earth.mu.value*(x_e/norm(x_e)^3 + (x(1:3)-x_e)/norm(x(1:3)-x_e)^3 );
-gs_main =0;% -mu_s*(x_s/norm(x_s)^3 + (x(1:3)-x_s)/norm(x(1:3)-x_s)^3 );
+gs_main = -mu_s*(x_s/norm(x_s)^3 + (x(1:3)-x_s)/norm(x(1:3)-x_s)^3 );
 
 dx(1:3) = x(4:6);
 dx(4:6) = gm_main + ge_main + gs_main;

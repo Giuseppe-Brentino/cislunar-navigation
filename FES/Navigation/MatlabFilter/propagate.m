@@ -19,17 +19,17 @@ min = date.min;
 s = date.sec+time;
 startDate = datetime(y,m,d,h,min,s);
 et =  cspice_str2et( char(startDate ) );
-[xx,~] = cspice_spkezr('EARTH', et, 'J2000', 'NONE', 'MOON');
-x_e = xx(1:3);
+x_e = cspice_spkpos('EARTH', et, 'J2000', 'NONE', 'MOON');
+
 %%
 % Sun position
 
-% [xx,~] = cspice_spkezr('SUN', et, 'J2000', 'NONE', 'MOON');
-% x_s =xx(1:3);
+[xx,~] = cspice_spkezr('SUN', et, 'J2000', 'NONE', 'MOON');
+x_s =xx(1:3);
+% x_s = x_e;
 % x_s =x_e + approxSun(jd);
 
-
-% mu_s = 1.32712440018e+11; %km^3/s^2
+mu_s = 1.32712440018e+11; %km^3/s^2
 
 % Moon orientation
 moon_angles = Propagation.Moon.eul0.value + time*Propagation.Moon.eul_dot.value;
@@ -59,7 +59,7 @@ dgdx = MPA'*dgdx_rot*MPA;
 % % % ge_main = -Propagation.Earth.mu.value*(x_e/norm(x_e)^3 + (x_prev(1:3)-x_e)/norm(x_prev(1:3)-x_e)^3 );
 
 
- [~, x] = ode4(@odefun, [time time+0.2],x_prev,SH,Propagation,date,x_e,[],MPA);
+ [~, x] = ode4(@odefun, [time time+0.2],x_prev,SH,Propagation,date,x_e,x_s,MPA);
 x=x(end,:)';
 
 % %% Update velocities
@@ -81,19 +81,19 @@ STM(7:9,10:12) = eye(3);
 
 dgE_dx = Propagation.Earth.mu.value * (3*(x_prev(1:3)-x_e)*(x_prev(1:3)-x_e)'...
     /norm(x_prev(1:3)-x_e)^5 - eye(3)./norm(x_prev(1:3)-x_e)^3);
-% dgS_dx = mu_s * (3*(x_prev(1:3)-x_s)*(x_prev(1:3)-x_s)'...
-%     /norm(x_prev(1:3)-x_s)^5 - eye(3)./norm(x_prev(1:3)-x_s)^3);
+dgS_dx = mu_s * (3*(x_prev(1:3)-x_s)*(x_prev(1:3)-x_s)'...
+    /norm(x_prev(1:3)-x_s)^5 - eye(3)./norm(x_prev(1:3)-x_s)^3);
 
-STM(4:6,1:3) = dgdx + dgE_dx;% + dgS_dx;
+STM(4:6,1:3) = dgdx + dgE_dx + dgS_dx;
 
 dgE_dx = Propagation.Earth.mu.value * (3*(x_prev(1:3)-x_e)*(x_prev(1:3)-x_e)'...
     /norm(x_prev(1:3)-x_e)^5 - eye(3)./norm(x_prev(1:3)-x_e)^3);
-% dgS_dx = mu_s * (3*(x_prev(1:3)-x_s)*(x_prev(1:3)-x_s)'...
-%     /norm(x_prev(1:3)-x_s)^5 - eye(3)./norm(x_prev(1:3)-x_s)^3);
+dgS_dx = mu_s * (3*(x_prev(1:3)-x_s)*(x_prev(1:3)-x_s)'...
+    /norm(x_prev(1:3)-x_s)^5 - eye(3)./norm(x_prev(1:3)-x_s)^3);
 dg2b_dx = Propagation.Moon.mu.value * (3*(x_prev(7:9))*(x_prev(7:9))'...
     /norm(x_prev(7:9))^5 - eye(3)./norm(x_prev(7:9))^3);
 
-STM(10:12,7:9) = dg2b_dx + dgE_dx;% + dgS_dx;
+STM(10:12,7:9) = dg2b_dx + dgE_dx + dgS_dx;
 
 STM = eye(12) + STM/Propagation.lf.value;
 
@@ -102,8 +102,18 @@ G = zeros(12,6);
 G(4:6,1:3) = eye(3);
 G(10:12,4:6) = eye(3);
 
-PN = (STM*G)*Q*(STM*G)' ./ Propagation.lf.value;
+% PN = (STM*G)*Q*(STM*G)' ./ Propagation.lf.value;
+% PN = Q;
+PN = zeros(12,12);
+PN(1:3,1:3) = Q(1:3,1:3)./ Propagation.lf.value^4/3;
+PN(1:3,4:6) = Q(1:3,1:3)./ Propagation.lf.value^3/2;
+PN(4:6,1:3) = Q(1:3,1:3)./ Propagation.lf.value^3/2;
+PN(4:6,4:6) = Q(1:3,1:3)./ Propagation.lf.value^2;
 
+PN(7:9,7:9) = Q(4:6,4:6)./ Propagation.lf.value^4/3;
+PN(7:9,10:12) = Q(4:6,4:6)./ Propagation.lf.value^3/2;
+PN(10:12,7:9) = Q(4:6,4:6)./ Propagation.lf.value^3/2;
+PN(10:12,10:12) = Q(4:6,4:6)./ Propagation.lf.value^2;
 %% Cov matrix
 P = STM*P_prev*STM' + PN;
 end

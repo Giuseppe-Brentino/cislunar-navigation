@@ -8,7 +8,7 @@ BeaconSpacecraft = data{3};
 a = 2000;
 e = 0;
 i = deg2rad(45);
-OM = deg2rad(90);
+OM = deg2rad(0);
 om = 0;
 th = 0;
 
@@ -55,6 +55,7 @@ et =  cspice_str2et( char(startDate ) );
 
 % Read data from kernel
 cspice_furnsh(strcat(folder,'\LumioKernel.bsp'));
+% cspice_furnsh(strcat(folder,'\DRO.bsp'));
 cspice_furnsh(strcat(folder,'\..\..\Data\de421.bsp'));
 [xx,~] = cspice_spkezr('-100009', et, 'J2000', 'NONE', 'MOON');
 
