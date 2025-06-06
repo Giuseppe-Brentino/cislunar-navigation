@@ -23,8 +23,8 @@ P0 = params{2}.value;
 Propagation = params{3};
 startDate = params{4};
 Q = params{5}.value(1:6,1:6);
-Q(4:6,4:6) =  Q(4:6,4:6)*1e1;
-Q(1:3,1:3) =  Q(1:3,1:3)*5e2;
+Q(4:6,4:6) =  Q(4:6,4:6);
+Q(1:3,1:3) =  Q(1:3,1:3);
 % STM_G = zeros(12,6);
 % STM_G(4:6,1:3) = eye(3);
 % STM_G(1:3,1:3) = diag(ones(3,1)/Propagation.lf.value);
@@ -85,11 +85,11 @@ for i = 2:length(time)
     if mod(time(i),1/Propagation.lf.value) == 0
         j = j+1;
 
-        %
-        real_xm(:,j) = xm.value(:,i);
-        real_xb(:,j) = xb.value(:,i);
-        real_vm(:,j) = vm.value(:,i);
-        real_vb(:,j) = vb.value(:,i);
+        % %
+        % real_xm(:,j) = xm.value(:,i);
+        % real_xb(:,j) = xb.value(:,i);
+        % real_vm(:,j) = vm.value(:,i);
+        % real_vb(:,j) = vb.value(:,i);
         meas_range(:,j) = range.value(i);
         meas_rangeRate(:,j) = rangerate.value(i);
 
@@ -249,4 +249,4 @@ xlabel('h')
 % 
 save '..\..\..\..\..\..\..\PROVE\test_I_OM0_20gg.mat' t_tot x_tot real_xm real_xb...
     real_vm real_vb main_cov_x beacon_cov_x main_cov_v ...
-beacon_cov_v  %time range rangerate
+beacon_cov_v  time range rangerate
