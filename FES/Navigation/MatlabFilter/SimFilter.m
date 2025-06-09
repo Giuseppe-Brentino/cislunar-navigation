@@ -101,5 +101,14 @@ plot(data.threeSigma.vb.Time/3600,[data.threeSigma.vb.Data(:,3),-data.threeSigma
 xlabel('Time [h]')
 ylabel('Beacon error z [m/s]')
 
+%%% Clock
+figure
+hold on
+grid on
+plot(data.errors.bias_clock.Time/3600,data.errors.bias_clock.Data)
+plot(data.threeSigma.bias_clock.Time/3600,[data.threeSigma.bias_clock.Data(1,:);-data.threeSigma.bias_clock.Data(1,:)],'r--')
+xlabel('Time [h]')
+ylabel('Clock Bias error [km]')
+ylim([-1 1])
 
-save  '..\..\..\..\..\..\..\PROVE\test_I_OM0_sim_fullSTM.mat'  data
+% save  '..\..\..\..\..\..\..\PROVE\test_I_cBiasDrift.mat'  data
