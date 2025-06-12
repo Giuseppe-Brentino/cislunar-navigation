@@ -103,6 +103,7 @@ ylabel('Beacon error z [m/s]')
 
 %%% Clock
 figure
+subplot(2,1,1)
 hold on
 grid on
 plot(data.errors.bias_clock.Time/3600,data.errors.bias_clock.Data)
@@ -110,5 +111,13 @@ plot(data.threeSigma.bias_clock.Time/3600,[data.threeSigma.bias_clock.Data(1,:);
 xlabel('Time [h]')
 ylabel('Clock Bias error [km]')
 ylim([-1 1])
+subplot(2,1,2)
+hold on
+grid on
+plot(data.errors.drift_clock.Time/3600,data.errors.drift_clock.Data)
+plot(data.threeSigma.drift_clock.Time/3600,[data.threeSigma.drift_clock.Data(1,:);-data.threeSigma.drift_clock.Data(1,:)],'r--')
+xlabel('Time [h]')
+ylabel('Clock Bias error [km/s]')
+ylim([-1e-3 1e-3])
 
-% save  '..\..\..\..\..\..\..\PROVE\test_I_cBiasDrift.mat'  data
+% save  '..\..\..\..\..\..\..\PROVE\test_I_cBiasDrift2.mat'  data

@@ -131,6 +131,7 @@ for i=1:size(P_tot,3)
     beacon_cov_v(i,:) = 3*sqrt(diag(P_tot(10:12,10:12,i)));
 end
 
+%%
 %%%%% POS
 figure
 hold on
