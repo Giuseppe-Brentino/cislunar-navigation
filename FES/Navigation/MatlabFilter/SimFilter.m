@@ -3,7 +3,7 @@ close all;
 clc;
 
 % load '..\..\..\..\..\..\..\PROVE\test_I_cBiasDriftAging.mat' 
-rng('default');
+% rng('default');
 
 tic
 res = sim('Simulator');
@@ -133,4 +133,4 @@ ylabel('Clock Aging error [km/s^2]')
 ylim([-1e-10 1e-10])
 
 
-% save  '..\..\..\..\..\..\..\PROVE\test_I_cBiasDrift2.mat'  res -v7.3
+save  '..\..\..\..\..\..\..\PROVE\15gg_random.mat'  res %-v7.3
