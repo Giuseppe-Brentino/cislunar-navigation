@@ -60,13 +60,24 @@ imu_angles = imu{1}.orientation.value;
 
 % Get clock data
 clock = getParameters('Sensors.sldd',{'clock'});
+
 % Get NAV Parameters
-nav = getParameters('Navigation.sldd',{'Propagation','R_sensor2body','P0','x0'});
+nav = getParameters('Navigation.sldd',{'Propagation','R_sensor2body','P0','x0','SRP'});
 Propagation = nav{1};
 R_sensor2body = nav{2};
 P0 = nav{3};
 x0 = nav{4};
+SRP = nav{5};
 
+% SRP Data
+SRP.MainSpacecraft.C_R.value = MainSpacecraft.rp_coeff.nominal;
+SRP.BeaconSpacecraft.C_R.value = BeaconSpacecraft.rp_coeff.nominal;
+SRP.MainSpacecraft.mass.value = MainSpacecraft.mass.value;
+SRP.BeaconSpacecraft.mass.value = BeaconSpacecraft.mass.value;
+SRP.MainSpacecraft.radius.value = MainSpacecraft.radius.value;
+SRP.BeaconSpacecraft.radius.value = BeaconSpacecraft.radius.value;
+
+% Initial Covariance
 P0.value(1:3,1:3) = diag(MainSpacecraft.x0.std.^2);
 P0.value(4:6,4:6) = diag(MainSpacecraft.v0.std.^2);
 P0.value(7:9,7:9) = diag(ones(3,1)*deg2rad(0.5)^2);
@@ -114,8 +125,8 @@ x0.value(4:6) = MainSpacecraft.v0.nominal;
 x0.value(11:13) = BeaconSpacecraft.x0.nominal;
 x0.value(14:16) = BeaconSpacecraft.v0.nominal;
 % Update dictionary
-updateParameters('Navigation.sldd',{'StartDate','Propagation','R_sensor2body','P0','x0'},...
-    {StartDate,Propagation,R_sensor2body,P0,x0},true)
+updateParameters('Navigation.sldd',{'StartDate','Propagation','R_sensor2body','P0','x0','SRP'},...
+    {StartDate,Propagation,R_sensor2body,P0,x0,SRP},true)
 
 end
 
