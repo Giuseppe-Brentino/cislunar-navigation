@@ -39,6 +39,7 @@ Environment.Moon.SH.Cnm.value = Cnm;
 Environment.Moon.SH.Snm.value = Snm;
 Environment.Moon.SH.Znm.value = Znm;
 
+Environment.Date.hour = 0;
 Environment.Date.day = 1;
 % Update the dictionary with the modified 'Environment' and 'TestData' fields
 updateParameters('Scenario.sldd',{'Environment','TestData'},{Environment,TestData},true);
