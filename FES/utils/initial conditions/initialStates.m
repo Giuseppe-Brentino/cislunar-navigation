@@ -8,7 +8,7 @@ BeaconSpacecraft = data{3};
 a = 2000;
 e = 0;
 i = deg2rad(45);
-OM = deg2rad(0);
+OM = deg2rad(90);
 om = 0;
 th = 0;
 
