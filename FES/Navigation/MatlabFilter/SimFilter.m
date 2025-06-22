@@ -132,5 +132,53 @@ xlabel('Time [h]')
 ylabel('Clock Aging error [km/s^2]')
 ylim([-1e-10 1e-10])
 
+%%% Gyro
+figure
+subplot(3,1,1)
+hold on
+grid on
+plot(res.errors.bias_gyro.Time/3600,res.errors.bias_gyro.Data(1,:))
+plot(res.threeSigma.bias_gyro.Time/3600,[res.threeSigma.bias_gyro.Data(:,1) -res.threeSigma.bias_gyro.Data(:,1)],'r--')
+xlabel('Time [h]')
+ylabel('Gyro Bias error x [rad]')
+subplot(3,1,2)
+hold on
+grid on
+plot(res.errors.bias_gyro.Time/3600,res.errors.bias_gyro.Data(2,:))
+plot(res.threeSigma.bias_gyro.Time/3600,[res.threeSigma.bias_gyro.Data(:,2) -res.threeSigma.bias_gyro.Data(:,2)],'r--')
+xlabel('Time [h]')
+ylabel('Gyro Bias error y [rad]')
+subplot(3,1,3)
+hold on
+grid on
+plot(res.errors.bias_gyro.Time/3600,res.errors.bias_gyro.Data(3,:))
+plot(res.threeSigma.bias_gyro.Time/3600,[res.threeSigma.bias_gyro.Data(:,3) -res.threeSigma.bias_gyro.Data(:,3)],'r--')
+xlabel('Time [h]')
+ylabel('Gyro Bias error z [rad]')
+
+%%% Attitude
+figure
+subplot(3,1,1)
+hold on
+grid on
+plot(res.errors.attitude.Time/3600,wrapToPi(res.errors.attitude.Data(:,1)))
+plot(res.threeSigma.attitude.Time/3600,[res.threeSigma.attitude.Data(:,1) -res.threeSigma.attitude.Data(:,1)],'r--')
+xlabel('Time [h]')
+ylabel('Attitude error x [rad]')
+subplot(3,1,2)
+hold on
+grid on
+plot(res.errors.attitude.Time/3600,wrapToPi(res.errors.attitude.Data(:,2)))
+plot(res.threeSigma.attitude.Time/3600,[res.threeSigma.attitude.Data(:,2) -res.threeSigma.attitude.Data(:,2)],'r--')
+xlabel('Time [h]')
+ylabel('Attitude error y [rad]')
+subplot(3,1,3)
+hold on
+grid on
+plot(res.errors.attitude.Time/3600,wrapToPi(res.errors.attitude.Data(:,3)))
+plot(res.threeSigma.attitude.Time/3600,[res.threeSigma.attitude.Data(:,3) -res.threeSigma.attitude.Data(:,3)],'r--')
+xlabel('Time [h]')
+ylabel('Attitude error z [rad]')
+
 
 % save  '..\..\..\..\..\..\..\PROVE\15gg_delay_linear.mat'  res %-v7.3
