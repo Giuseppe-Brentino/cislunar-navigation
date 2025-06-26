@@ -132,6 +132,30 @@ xlabel('Time [h]')
 ylabel('Clock Aging error [km/s^2]')
 ylim([-1e-10 1e-10])
 
+%%% Acc
+figure
+subplot(3,1,1)
+hold on
+grid on
+plot(res.errors.bias_acc.Time/3600,res.errors.bias_acc.Data(1,:))
+plot(res.threeSigma.bias_acc.Time/3600,[res.threeSigma.bias_acc.Data(:,1) -res.threeSigma.bias_acc.Data(:,1)],'r--')
+xlabel('Time [h]')
+ylabel('Acc Bias error x [km/s^2]')
+subplot(3,1,2)
+hold on
+grid on
+plot(res.errors.bias_acc.Time/3600,res.errors.bias_acc.Data(2,:))
+plot(res.threeSigma.bias_acc.Time/3600,[res.threeSigma.bias_acc.Data(:,2) -res.threeSigma.bias_acc.Data(:,2)],'r--')
+xlabel('Time [h]')
+ylabel('Acc Bias error y [km/s^2]')
+subplot(3,1,3)
+hold on
+grid on
+plot(res.errors.bias_acc.Time/3600,res.errors.bias_acc.Data(3,:))
+plot(res.threeSigma.bias_acc.Time/3600,[res.threeSigma.bias_acc.Data(:,3) -res.threeSigma.bias_acc.Data(:,3)],'r--')
+xlabel('Time [h]')
+ylabel('Acc Bias error z [km/s^2]')
+
 %%% Gyro
 figure
 subplot(3,1,1)
