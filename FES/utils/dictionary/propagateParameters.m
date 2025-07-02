@@ -83,11 +83,10 @@ P0.value(4:6,4:6) = diag(MainSpacecraft.v0.std.^2);
 P0.value(7:9,7:9) = diag(ones(3,1)*deg2rad(0.5)^2);
 P0.value(10:12,10:12) = diag(BeaconSpacecraft.x0.std.^2);
 P0.value(13:15,13:15) = diag(BeaconSpacecraft.v0.std.^2);
-P0.value(16:18,16:18) = diag(ones(3,1)*(imu{1}.accelerometer.bias.std*0.001)^2);
-P0.value(19:21,19:21) = diag(ones(3,1)*deg2rad(imu{1}.gyroscope.bias.std)^2);
-P0.value(22,22) = (Environment.c.value*1e-3*clock{1}.deltaT0.std)^2;
-P0.value(23,23) = (Environment.c.value*1e-3*clock{1}.deltaT1.std)^2;
-P0.value(24,24) = (Environment.c.value*1e-3*clock{1}.deltaT2.std)^2;
+P0.value(16:18,16:18) = diag(ones(3,1)*deg2rad(imu{1}.gyroscope.bias.std)^2);
+P0.value(19,19) = (Environment.c.value*1e-3*clock{1}.deltaT0.std)^2;
+P0.value(20,20) = (Environment.c.value*1e-3*clock{1}.deltaT1.std)^2;
+P0.value(21,21) = (Environment.c.value*1e-3*clock{1}.deltaT2.std)^2;
 
 % Update starting date
 StartDate = Environment.Date; 

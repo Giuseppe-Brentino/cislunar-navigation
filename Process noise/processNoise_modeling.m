@@ -105,7 +105,7 @@ c = env{1}.c.value*1e-3;
 
 Q = struct();
 Q.description = 'Process noise matrix';
-Q.value = zeros(20);
+Q.value = zeros(21);
 Q.value(1:3,1:3) = diag(([sm1,sm2,sm3]*1e-3).^2);
 Q.value(4:6,4:6) = diag(([sb1,sb2,sb3]*1e-3).^2);
 Q.value(7:9,7:9) = diag((ones(3,1)*acc.N.value*1e-3).^2);
