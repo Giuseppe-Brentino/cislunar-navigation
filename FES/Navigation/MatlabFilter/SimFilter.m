@@ -180,4 +180,4 @@ xlabel('Time [h]')
 ylabel('Attitude error z [rad]')
 
 
-% save  '..\..\..\..\..\..\..\PROVE\15gg_acc.mat'  res -v7.3
+save  '..\..\..\..\..\..\..\PROVE\15gg_acc_SRP.mat'  res -v7.3
