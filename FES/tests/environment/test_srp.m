@@ -22,7 +22,7 @@ classdef test_srp < matlab.unittest.TestCase
             env = getParameters('Scenario.sldd',{'Environment'});
 
               % Compute expected acceleration due to SRP
-            expected_a = env{1}.Sun.P.value*env{1}.AU.value*eye(3);
+            expected_a = env{1}.Sun.P.value*env{1}.AU.value^2*eye(3)*1e-3;
 
             % Verify that the simulated acceleration matches the expected values
             testCase.verifyEqual(a_srp_x',expected_a(:,1))
