@@ -1,8 +1,7 @@
-clearvars -except data;
+clearvars;
 close all;
 clc;
 
-% load '..\..\..\..\..\..\..\PROVE\test_I_cBiasDriftAging.mat' 
 rng('default');
 
 tic
@@ -180,4 +179,4 @@ xlabel('Time [h]')
 ylabel('Attitude error z [rad]')
 
 
-save  '..\..\..\..\..\..\..\PROVE\15gg_acc_SRP.mat'  res -v7.3
+% save  '..\..\..\..\..\..\..\PROVE\15gg_acc_SRP.mat'  res -v7.3
