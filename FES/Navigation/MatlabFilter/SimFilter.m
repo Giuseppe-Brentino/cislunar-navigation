@@ -203,30 +203,4 @@ legend(h(1),'Data','bounds')
 NEES = length(res.NEES.Data(res.NEES.Data<=ub & res.NEES.Data>=lb))/...
     length(res.NEES.Data) * 100
 
-%% NIS_ST
-res.NIS_ST.Data = squeeze(res.NIS_ST.Data);
-ub = chi2inv(0.995,3);
-lb = chi2inv(0.005,3);
-figure;
-grid on
-h = scatterhist(res.NIS_ST.Time/3600, res.NIS_ST.Data, ...
-    'Direction', 'out', ...
-    'Location', 'SouthEast', ...
-    'Kernel', 'on', ...
-    'Marker', '.');
-xlabel('Time');
-ylabel('Value');
-hold(h(1),"on")
-plot([0,res.NIS_ST.Time(end)/3600,nan,0,res.NIS_ST.Time(end)/3600],[ub,ub,nan,lb,lb])
-set(h(1), 'YAxisLocation', 'left');
-hold(h(3), 'on');
-yLims = ylim(h(3));
-plot(h(3), [ub,ub,nan,lb,lb],[yLims,nan,yLims])
-% delete(h(2))
-legend(h(1),'Data','bounds')
-
-NIS = length(res.NIS_ST.Data(res.NIS_ST.Data<=ub & res.NIS_ST.Data>=lb))/...
-    length(res.NIS_ST.Data) * 100
-
-
 % save  '..\..\..\..\..\..\..\PROVE\15gg_acc_SRP.mat'  res -v7.3
