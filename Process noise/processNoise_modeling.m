@@ -105,15 +105,15 @@ c = env{1}.c.value*1e-3;
 
 Q = struct();
 Q.description = 'Process noise matrix';
-Q.value = zeros(20);
+Q.value = zeros(21);
 Q.value(1:3,1:3) = diag(([sm1,sm2,sm3]*1e-3).^2);
 Q.value(4:6,4:6) = diag(([sb1,sb2,sb3]*1e-3).^2);
 Q.value(7:9,7:9) = diag((ones(3,1)*acc.N.value*1e-3).^2);
 Q.value(10:12,10:12) = diag((ones(3,1)*acc.K.value*1e-3).^2);
 Q.value(13:15,13:15) = diag((ones(3,1)*gyro.N.value*pi/180).^2);
 Q.value(16:18,16:18) = diag((ones(3,1)*gyro.K.value*pi/180).^2);
-Q.value(19,19) = (clock.K.value*c)^2;
-Q.value(20,20) = 0;
+Q.value(19,19) = (clock.N.value*c)^2;
+Q.value(20,20) = (clock.K.value*c)^2;
 updateParameters('Navigation.sldd',{'Q'},{Q},true);
 
 %% Define F

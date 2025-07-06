@@ -8,9 +8,16 @@ BeaconSpacecraft = data{3};
 a = 2000;
 e = 0;
 i = deg2rad(45);
-OM = deg2rad(90);
+OM = deg2rad(0);
 om = 0;
 th = 0;
+
+% a = 15737.4;
+% e = 0.61;
+% i = deg2rad(57.83);
+% OM = deg2rad(15.55);
+% om = 90;
+% th = 0;
 
 OrbitCtrl = getParameters('Scenario.sldd',{'OrbitCtrl'});
 OrbitCtrl{1}.target_i.value = rad2deg(i);
@@ -48,6 +55,7 @@ et =  cspice_str2et( char(startDate ) );
 
 % Read data from kernel
 cspice_furnsh(strcat(folder,'\LumioKernel.bsp'));
+% cspice_furnsh(strcat(folder,'\DRO.bsp'));
 cspice_furnsh(strcat(folder,'\..\..\Data\de421.bsp'));
 [xx,~] = cspice_spkezr('-100009', et, 'J2000', 'NONE', 'MOON');
 
@@ -69,6 +77,6 @@ x0.value(14:16) = BeaconSpacecraft.v0.nominal;
 
 %% Update dictionaries
 updateParameters('Scenario.sldd',{'MainSpacecraft','BeaconSpacecraft'},...
-    {MainSpacecraft,BeaconSpacecraft}, true);
+    {MainSpacecraft,BeaconSpacecraft},true);
 
 updateParameters('Navigation.sldd',{'x0'},{x0},true);

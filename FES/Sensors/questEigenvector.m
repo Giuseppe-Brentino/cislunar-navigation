@@ -8,10 +8,10 @@ classdef questEigenvector < matlab.System
 
         function [q, rot_flag] = stepImpl(obj, S, Z)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-            % Compute Optimal Quaternion using Davenport's q-method
+            % Compute Optimal Quaternion using the QUEST algorithm
             %
-            % This function estimates the optimal quaternion (q) for 
-            % attitude determination using the eigenvalue-based solution 
+            % This function estimates the optimal quaternion (q) for
+            % attitude determination using the eigenvalue-based solution
             % to Wahba's problem.
             %
             % INPUT:
@@ -20,9 +20,13 @@ classdef questEigenvector < matlab.System
             %
             % OUTPUT:
             %   q        - 4x1 optimal quaternion representing the attitude
-            %   rot_flag - Boolean flag indicating if the consecutive 
-            %              rotations method need to be used rotation was 
+            %   rot_flag - Boolean flag indicating if the consecutive
+            %              rotations method need to be used rotation was
             %              detected
+            % Source:
+            % M. D. Shuster and S. D. Oh, ‘Three-axis attitude
+            % determination from vector observations’, Journal of Guidance
+            % and Control, vol. 4, no. 1, pp. 70–77, Jan. 1981.
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             % Compute coefficients
@@ -35,13 +39,13 @@ classdef questEigenvector < matlab.System
                 S(2,2)*S(1,1) - S(2,1)*S(1,2);
 
             % Compute maximum eigenvalue
-            lambda = computeEigenvalue(obj, S, Z, sigma, k, delta);
+            [lambda] = computeEigenvalue(obj, S, Z, sigma, k, delta);
 
             % Compute intermediate coefficients
             alpha = lambda^2 -sigma^2 + k;
             beta = lambda - sigma;
             gamma = alpha * (lambda + sigma) - delta;
-            
+
             % Check if the solution is valid
             if gamma<1e-6
                 % If gamma is too small, return the flag to use the
@@ -62,7 +66,7 @@ classdef questEigenvector < matlab.System
 
     methods
 
-        function lambda = computeEigenvalue(obj, S, Z, sigma, k, delta)
+        function [lambda] = computeEigenvalue(obj, S, Z, sigma, k, delta)
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
             % Compute the biggest eigenvalue using Newton-Raphson Method
             %
@@ -90,7 +94,7 @@ classdef questEigenvector < matlab.System
             lambda = 1;       % Initial guess
             i = 0;            % Iteration counter
             n_max = 100;      % Maximum number of iterations
-            tol = 1e-10;      % Convergence tolerance
+            tol = 1e-13;      % Convergence tolerance
             error = 1;        % Initial error
 
             % Perform Newton-Raphson iterations
