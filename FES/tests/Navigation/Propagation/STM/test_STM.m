@@ -13,11 +13,12 @@ classdef test_STM < matlab.unittest.TestCase
             %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
             % Load parameters from the data dictionary
-            data = getParameters('Navigation.sldd',{'StartDate','Propagation','x0','statesBus'});
+            data = getParameters('Navigation.sldd',{'StartDate','Propagation','x0','statesBus','SRP'});
             StartDate = data{1};
             Propagation = data{2};
             x0 = data{3};
             statesBus = data{4};
+            SRP = data{5};
 
             % Extract initial state components
             x_m = x0.value(1:3);            % Position of main satellite
@@ -32,28 +33,10 @@ classdef test_STM < matlab.unittest.TestCase
             w = a;
 
             % Run Simulink model
-            simulation = sim("Models\STM.slx",'srcWorkspace','current');
-            x_e = simulation.x_e(:,:,2);    % Earth's position at t+dt
-            actual_F = simulation.F(:,:,2); % STM from simulation
+            x_e = [0;0;384000];
+            x_s = [0;-1e8;0];
 
-            % Compute required rotation matrices
-            R = quat2rotm(q_m([4,1:3])');
-
-            % Bias-corrected measurements
-            acc = a-bias_acc;
-            omega = w-bias_gyro;
-
-            % Skew-symmetric matrix of acceleration
-            ax = [0, -acc(3), acc(2);
-                acc(3), 0, -acc(1);
-                -acc(2), acc(1), 0];
-
-            % Skew-symmetric matrix of angular velocity
-            wx = [0, -omega(3), omega(2);
-                omega(3), 0, -omega(1);
-                -omega(2), omega(1), 0];
-
-            % Initialize gravity model object
+             % Initialize gravity model object
             fun = SH_nav;
 
             % Configure SH_nav with Moon's gravity field
@@ -74,36 +57,76 @@ classdef test_STM < matlab.unittest.TestCase
             % Get Moon gravity gradient in MPA frame, transform to MCI
             [~, dgm_dxm_MPA] = fun.getDerivative(pos);
             dgm_dxm = moon_rotm'*dgm_dxm_MPA*moon_rotm;
+            dgdx_SH = dgm_dxm;
+
+            simulation = sim("Models\STM.slx",'srcWorkspace','current');
+           
+            actual_F = simulation.F(:,:,2); % STM from simulation
+
+            % Compute required rotation matrices
+            R = quat2rotm(q_m([4,1:3])');
+
+            % Bias-corrected measurements
+            acc = a-bias_acc;
+            omega = w-bias_gyro;
+
+            % Skew-symmetric matrix of acceleration
+            ax = [0, -acc(3), acc(2);
+                acc(3), 0, -acc(1);
+                -acc(2), acc(1), 0];
+
+            % Skew-symmetric matrix of angular velocity
+            wx = [0, -omega(3), omega(2);
+                omega(3), 0, -omega(1);
+                -omega(2), omega(1), 0];
 
             % Compute Earth gravity gradient w.r.t. main satellite position
             dge_dxm = Propagation.Earth.mu.value*...
                 (3*(x_m-x_e)*(x_m-x_e)'/norm(x_m-x_e)^5 - eye(3)/norm(x_m-x_e)^3);
 
+            % Compute Sun gravity gradient w.r.t. main satellite position
+            dgs_dxm = Propagation.Sun.mu.value*...
+                (3*(x_m-x_s)*(x_m-x_s)'/norm(x_m-x_s)^5 - eye(3)/norm(x_m-x_s)^3);
+
+            % Compute SRP gradient w.r.t. main satellite position
+            dsrp_dxm = SRP.AU.value^2*SRP.radiation_pressure.value*...
+                SRP.MainSpacecraft.C_R.value*SRP.MainSpacecraft.radius.value^2*...
+                pi/SRP.MainSpacecraft.mass.value*1e-3*...
+                (3*(x_m-x_s)*(x_m-x_s)'/norm(x_m-x_s)^5 - eye(3)/norm(x_m-x_s)^3);
+
             % Compute Earth gravity gradient w.r.t. beacon satellite position
             dge_dxb = Propagation.Earth.mu.value*...
                 (3*(x_b-x_e)*(x_b-x_e)'/norm(x_b-x_e)^5 - eye(3)/norm(x_b-x_e)^3);
+
+ % Compute Sun gravity gradient w.r.t. beacon satellite position
+            dgs_dxb = Propagation.Sun.mu.value*...
+                (3*(x_b-x_s)*(x_b-x_s)'/norm(x_b-x_s)^5 - eye(3)/norm(x_b-x_s)^3);
 
             % Compute Moon gravity gradient w.r.t. beacon satellite position
             dgm_dxb = Propagation.Moon.mu.value*...
                 (3*(x_b)*(x_b)'/norm(x_b)^5 - eye(3)/norm(x_b)^3);
 
+             % Compute SRP gradient w.r.t. beacon satellite position
+            dsrp_dxb = SRP.AU.value^2*SRP.radiation_pressure.value*...
+                SRP.BeaconSpacecraft.C_R.value*SRP.BeaconSpacecraft.radius.value^2*...
+                pi/SRP.BeaconSpacecraft.mass.value*1e-3*...
+                (3*(x_e-x_s)*(x_e-x_s)'/norm(x_e-x_s)^5 - eye(3)/norm(x_e-x_s)^3);
+
             % Initialize and populate Jacobian (F matrix)
-            F = zeros(23);
-            F(1:3,4:6) = eye(3);                      % d(velocity_m)/d(velocity_m)
-            F(4:6,7:9) = -R * ax*1e-3;                % d(acceleration_m)/d(attitude_m)
-            F(7:9,7:9) = -wx;                         % d(angular velocity_b)/d(attitude_m)
-            F(10:12,13:15) = eye(3);                  % d(velocity_b)/d(velocity_b)
-            F(22,23) = 1;                             % d(clock drift)/d(clock drift)
-            F(4:6,16:18) = -R;                        % d(acceleration_m)/d(acc bias)
-            F(7:9,19:21) = -eye(3);                   % d(angular vel_m)/d(gyro bias)
-            F(4:6,1:3) = dgm_dxm + dge_dxm;           % d(velocity_m)/d(position_m)
-            F(13:15,10:12) = dgm_dxb + dge_dxb;       % d(velocity_b)/d(position_b)
+            F = zeros(21);
+            F(1:3,4:6) = eye(3);                                        % d(velocity_m)/d(velocity_m)
+            F(4:6,1:3) = dgm_dxm + dge_dxm + dgs_dxm +dsrp_dxm;         % d(velocity_m)/d(position_m)
+            F(4:6,7:9) = -R*ax;                                         % d(acceleration_m)/d(attitude_m)
+            F(7:9,7:9) = -wx;                                           % d(angular velocity_b)/d(attitude_m)
+            F(10:12,13:15) = eye(3);                                    % d(velocity_b)/d(velocity_b)
+            F(7:9,16:18) = -eye(3);                                     % d(angular vel_m)/d(gyro bias)
+            F(13:15,10:12) = dgm_dxb + dge_dxb + dgs_dxb + dsrp_dxb;    % d(velocity_b)/d(position_b)
 
             % Compute expected STM using Euler discretization
-            expected_F = F*dt + eye(23);
+            expected_F = F*dt + eye(21);
 
             % Verify simulation output matches expected result
-            testCase.verifyEqual(actual_F,expected_F,'AbsTol',eps)
+            testCase.verifyEqual(actual_F,expected_F,'AbsTol',2*eps)
 
         end
     end

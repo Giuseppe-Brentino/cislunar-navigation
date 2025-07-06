@@ -25,11 +25,11 @@ classdef test_IMU_prop < matlab.unittest.TestCase
             testCase.verifyEqual(orientation_error,orientation_error*0,'absTol',1e-8)
         end
 
-        function test_acc_integration(testCase)
-            % Test that the integration of the accelerometer gives acceptable
-            % results
-            v_error = squeeze(testCase.data.v_error) ;
-            testCase.verifyEqual(v_error,v_error*0,'absTol',1e-13)
+        function test_acc_inertial(testCase)
+            % Test that the mean acceleration in inertial frame is computed
+            % correctly
+            a_in_error = squeeze(testCase.data.a_in_error) ;
+            testCase.verifyEqual(a_in_error(:,end),a_in_error(:,end)*0,'absTol',1e-13)
         end
 
         function test_mean_meas(testCase)

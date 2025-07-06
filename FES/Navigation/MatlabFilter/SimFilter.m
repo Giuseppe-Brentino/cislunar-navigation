@@ -66,42 +66,42 @@ grid on
 plot(res.errors.vm.Time/3600,res.errors.vm.Data(1,:))
 plot(res.threeSigma.vm.Time/3600,[res.threeSigma.vm.Data(:,1),-res.threeSigma.vm.Data(:,1)],'r--')
 xlabel('Time [h]')
-ylabel('Main error x [m/s]')
+ylabel('Main error x [km/s]')
 subplot(2,3,2)
 hold on
 grid on
 plot(res.errors.vm.Time/3600,res.errors.vm.Data(2,:))
 plot(res.threeSigma.vm.Time/3600,[res.threeSigma.vm.Data(:,2),-res.threeSigma.vm.Data(:,2)],'r--')
 xlabel('Time [h]')
-ylabel('Main error y [m/s]')
+ylabel('Main error y [km/s]')
 subplot(2,3,3)
 hold on
 grid on
 plot(res.errors.vm.Time/3600,res.errors.vm.Data(3,:))
 plot(res.threeSigma.vm.Time/3600,[res.threeSigma.vm.Data(:,3),-res.threeSigma.vm.Data(:,3)],'r--')
 xlabel('Time [h]')
-ylabel('Main error z [m/s]')
+ylabel('Main error z [km/s]')
 subplot(2,3,4)
 hold on
 grid on
 plot(res.errors.vb.Time/3600,res.errors.vb.Data(1,:))
 plot(res.threeSigma.vb.Time/3600,[res.threeSigma.vb.Data(:,1),-res.threeSigma.vb.Data(:,1)],'r--')
 xlabel('Time [h]')
-ylabel('Beacon error x [m/s]')
+ylabel('Beacon error x [km/s]')
 subplot(2,3,5)
 hold on
 grid on
 plot(res.errors.vb.Time/3600,res.errors.vb.Data(2,:))
 plot(res.threeSigma.vb.Time/3600,[res.threeSigma.vb.Data(:,2),-res.threeSigma.vb.Data(:,2)],'r--')
 xlabel('Time [h]')
-ylabel('Beacon error y [m/s]')
+ylabel('Beacon error y [km/s]')
 subplot(2,3,6)
 hold on
 grid on
 plot(res.errors.vb.Time/3600,res.errors.vb.Data(3,:))
 plot(res.threeSigma.vb.Time/3600,[res.threeSigma.vb.Data(:,3),-res.threeSigma.vb.Data(:,3)],'r--')
 xlabel('Time [h]')
-ylabel('Beacon error z [m/s]')
+ylabel('Beacon error z [km/s]')
 
 %%% Clock
 figure

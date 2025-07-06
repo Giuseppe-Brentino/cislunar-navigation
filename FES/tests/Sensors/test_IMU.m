@@ -100,7 +100,7 @@ classdef test_IMU < matlab.unittest.TestCase
             sensor.bias.std = testCase.gyroscope.bias.std;
 
             % Number of Monte Carlo simulations
-            Nsim = 1000;
+            Nsim = 2000;
 
             % Load the systematic errors model
             load_system('Models\IMU\systematic_errors.slx')
@@ -158,7 +158,7 @@ classdef test_IMU < matlab.unittest.TestCase
             sensor.scaleFactor.std = testCase.gyroscope.scaleFactor.std;
 
             % Number of Monte Carlo simulations
-            Nsim = 1000;
+            Nsim = 2000;
 
             % Load the systematic errors model
             load_system('Models\IMU\systematic_errors.slx')
@@ -215,7 +215,7 @@ classdef test_IMU < matlab.unittest.TestCase
             sensor.nonOrthogonality.std = testCase.gyroscope.nonOrthogonality.std;
 
             % Number of Monte Carlo simulations
-            Nsim = 1000;
+            Nsim = 2000;
 
             % Load the systematic errors model
             load_system('Models\IMU\systematic_errors.slx')
@@ -272,7 +272,7 @@ classdef test_IMU < matlab.unittest.TestCase
             sensor.misalignment.std = testCase.gyroscope.misalignment.std;
 
             % Number of Monte Carlo simulations
-            Nsim = 1000;
+            Nsim = 2000;
 
             % Load the systematic errors model
             load_system('Models\IMU\systematic_errors.slx')
