@@ -112,7 +112,7 @@ plot(res.errors.bias_clock.Time/3600,res.errors.bias_clock.Data)
 plot(res.threeSigma.bias_clock.Time/3600,[res.threeSigma.bias_clock.Data(1,:);-res.threeSigma.bias_clock.Data(1,:)],'r--')
 xlabel('Time [h]')
 ylabel('Clock Bias error [km]')
-ylim([-1 1])
+ylim([-3 3])
 subplot(3,1,2)
 hold on
 grid on
@@ -120,7 +120,7 @@ plot(res.errors.drift_clock.Time/3600,res.errors.drift_clock.Data)
 plot(res.threeSigma.drift_clock.Time/3600,[res.threeSigma.drift_clock.Data(1,:);-res.threeSigma.drift_clock.Data(1,:)],'r--')
 xlabel('Time [h]')
 ylabel('Clock Bias error [km/s]')
-ylim([-1e-3 1e-3])
+ylim([-1e-2 1e-2])
 subplot(3,1,3)
 hold on
 grid on
@@ -180,8 +180,12 @@ ylabel('Attitude error z [rad]')
 
 %% NEES
 res.NEES.Data = squeeze(res.NEES.Data);
-ub = chi2inv(0.995,6);
-lb = chi2inv(0.005,6);
+ub = chi2inv(0.975,21);
+lb = chi2inv(0.025,21);
+
+NEES_perc = length(res.NEES.Data(res.NEES.Data<=ub & res.NEES.Data>=lb))/...
+    length(res.NEES.Data) * 100;
+
 figure;
 grid on
 h = scatterhist(res.NEES.Time/3600, res.NEES.Data, ...
@@ -194,13 +198,16 @@ ylabel('Value');
 hold(h(1),"on")
 plot([0,res.NEES.Time(end)/3600,nan,0,res.NEES.Time(end)/3600],[ub,ub,nan,lb,lb])
 set(h(1), 'YAxisLocation', 'left');
+xlim([0,res.NEES.Time(end)/3600])
+yLims = ylim(h(1));
+xLims = xlim(h(1));
+text(0.01,yLims(2)-2,num2str(NEES_perc)+"% inside the 95% bounds")
 hold(h(3), 'on');
 yLims = ylim(h(3));
 plot(h(3), [ub,ub,nan,lb,lb],[yLims,nan,yLims])
-% delete(h(2))
+delete(h(2))
 legend(h(1),'Data','bounds')
 
-NEES = length(res.NEES.Data(res.NEES.Data<=ub & res.NEES.Data>=lb))/...
-    length(res.NEES.Data) * 100
 
-% save  '..\..\..\..\..\..\..\PROVE\15gg_acc_SRP.mat'  res -v7.3
+
+% save  '..\..\..\..\..\..\..\PROVE\15gg_NEES_tuned.mat'  res -v7.3
