@@ -183,7 +183,7 @@ res.NEES.Data = squeeze(res.NEES.Data);
 ub = chi2inv(0.975,21);
 lb = chi2inv(0.025,21);
 
-NEES_perc = length(res.NEES.Data(res.NEES.Data<=ub & res.NEES.Data>=lb))/...
+NEES_perc = length(res.NEES.Data(res.NEES.Data<=ub & res.NEES.Data>=lb ))/...
     length(res.NEES.Data) * 100;
 
 figure;
@@ -208,6 +208,86 @@ plot(h(3), [ub,ub,nan,lb,lb],[yLims,nan,yLims])
 delete(h(2))
 legend(h(1),'Data','bounds')
 
+%% NMEE
+NMEE = squeeze(res.NMEE.Data);
 
+figure
+sgtitle('Attitude, gyro bias')
+subplot(2,3,1)
+hold on
+grid on
+histfit(NMEE(7,:),20,'Normal')
+xline(mean(NMEE(7,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(7,:)),'k-','LineWidth',2.5)
+subplot(2,3,2)
+hold on
+grid on
+histfit(NMEE(8,:),20,'Normal')
+xline(mean(NMEE(8,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(8,:)),'k-','LineWidth',2.5)
+subplot(2,3,3)
+hold on
+grid on
+histfit(NMEE(9,:),20,'Normal')
+xline(mean(NMEE(9,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(9,:)),'k-','LineWidth',2.5)
 
+subplot(2,3,4)
+hold on
+grid on
+histfit(NMEE(16,:),20,'Normal')
+xline(mean(NMEE(16,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(16,:)),'k-','LineWidth',2.5)
+subplot(2,3,5)
+hold on
+grid on
+histfit(NMEE(17,:),20,'Normal')
+xline(mean(NMEE(17,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(17,:)),'k-','LineWidth',2.5)
+subplot(2,3,6)
+hold on
+grid on
+histfit(NMEE(18,:),20,'Normal')
+xline(mean(NMEE(18,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(18,:)),'k-','LineWidth',2.5)
+
+figure
+sgtitle('Main SC pos vel')
+subplot(2,3,1)
+hold on
+grid on
+histfit(NMEE(1,:),20,'Normal')
+xline(mean(NMEE(1,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(1,:)),'k-','LineWidth',2.5)
+subplot(2,3,2)
+hold on
+grid on
+histfit(NMEE(2,:),20,'Normal')
+xline(mean(NMEE(2,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(2,:)),'k-','LineWidth',2.5)
+subplot(2,3,3)
+hold on
+grid on
+histfit(NMEE(3,:),20,'Normal')
+xline(mean(NMEE(3,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(3,:)),'k-','LineWidth',2.5)
+
+subplot(2,3,4)
+hold on
+grid on
+histfit(NMEE(4,:),20,'Normal')
+xline(mean(NMEE(4,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(4,:)),'k-','LineWidth',2.5)
+subplot(2,3,5)
+hold on
+grid on
+histfit(NMEE(5,:),20,'Normal')
+xline(mean(NMEE(5,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(5,:)),'k-','LineWidth',2.5)
+subplot(2,3,6)
+hold on
+grid on
+histfit(NMEE(6,:),20,'Normal')
+xline(mean(NMEE(6,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(6,:)),'k-','LineWidth',2.5)
 % save  '..\..\..\..\..\..\..\PROVE\15gg_NEES_tuned.mat'  res -v7.3
