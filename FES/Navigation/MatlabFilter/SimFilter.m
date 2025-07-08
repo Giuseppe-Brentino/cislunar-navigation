@@ -212,44 +212,25 @@ legend(h(1),'Data','bounds')
 NMEE = squeeze(res.NMEE.Data);
 
 figure
-sgtitle('Attitude, gyro bias')
-subplot(2,3,1)
+sgtitle('clock')
+subplot(1,3,1)
 hold on
 grid on
-histfit(NMEE(7,:),20,'Normal')
-xline(mean(NMEE(7,:)),'r-','LineWidth',2.5)
-xline(std(NMEE(7,:)),'k-','LineWidth',2.5)
-subplot(2,3,2)
+histfit(NMEE(19,:),20,'Normal')
+xline(mean(NMEE(19,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(19,:)),'k-','LineWidth',2.5)
+subplot(1,3,2)
 hold on
 grid on
-histfit(NMEE(8,:),20,'Normal')
-xline(mean(NMEE(8,:)),'r-','LineWidth',2.5)
-xline(std(NMEE(8,:)),'k-','LineWidth',2.5)
-subplot(2,3,3)
+histfit(NMEE(20,:),20,'Normal')
+xline(mean(NMEE(20,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(20,:)),'k-','LineWidth',2.5)
+subplot(1,3,3)
 hold on
 grid on
-histfit(NMEE(9,:),20,'Normal')
-xline(mean(NMEE(9,:)),'r-','LineWidth',2.5)
-xline(std(NMEE(9,:)),'k-','LineWidth',2.5)
-
-subplot(2,3,4)
-hold on
-grid on
-histfit(NMEE(16,:),20,'Normal')
-xline(mean(NMEE(16,:)),'r-','LineWidth',2.5)
-xline(std(NMEE(16,:)),'k-','LineWidth',2.5)
-subplot(2,3,5)
-hold on
-grid on
-histfit(NMEE(17,:),20,'Normal')
-xline(mean(NMEE(17,:)),'r-','LineWidth',2.5)
-xline(std(NMEE(17,:)),'k-','LineWidth',2.5)
-subplot(2,3,6)
-hold on
-grid on
-histfit(NMEE(18,:),20,'Normal')
-xline(mean(NMEE(18,:)),'r-','LineWidth',2.5)
-xline(std(NMEE(18,:)),'k-','LineWidth',2.5)
+histfit(NMEE(21,:),20,'Normal')
+xline(mean(NMEE(21,:)),'r-','LineWidth',2.5)
+xline(std(NMEE(21,:)),'k-','LineWidth',2.5)
 
 figure
 sgtitle('Main SC pos vel')
@@ -290,4 +271,62 @@ grid on
 histfit(NMEE(6,:),20,'Normal')
 xline(mean(NMEE(6,:)),'r-','LineWidth',2.5)
 xline(std(NMEE(6,:)),'k-','LineWidth',2.5)
+
+%% NIS 
+NIS_ST.Time = res.NIS_ST.Time(res.NIS_ST_flag.Data);
+NIS_ST.Data = squeeze(res.NIS_ST.Data(res.NIS_ST_flag.Data));
+ub = chi2inv(0.975,3);
+lb = chi2inv(0.025,3);
+NIS_ST_perc = length(NIS_ST.Data(NIS_ST.Data<=ub & NIS_ST.Data>=lb ))/...
+    length(NIS_ST.Data) * 100;
+
+figure;
+grid on
+h = scatterhist(NIS_ST.Time/3600, NIS_ST.Data, ...
+    'Direction', 'out', ...
+    'Location', 'SouthEast', ...
+    'Kernel', 'on', ...
+    'Marker', '.');
+xlabel('Time');
+ylabel('Value');
+hold(h(1),"on")
+plot([0,NIS_ST.Time(end)/3600,nan,0,NIS_ST.Time(end)/3600],[ub,ub,nan,lb,lb])
+set(h(1), 'YAxisLocation', 'left');
+xlim([0,NIS_ST.Time(end)/3600])
+yLims = ylim(h(1));
+text(0.01,yLims(2)-2,num2str(NIS_ST_perc)+"% inside the 95% bounds")
+hold(h(3), 'on');
+yLims = ylim(h(3));
+plot(h(3), [ub,ub,nan,lb,lb],[yLims,nan,yLims])
+delete(h(2))
+legend(h(1),'Data','bounds')
+
+NIS_Radio.Time = res.NIS_Radio.Time(res.NIS_Radio_flag.Data);
+NIS_Radio.Data = squeeze(res.NIS_Radio.Data(res.NIS_Radio_flag.Data));
+ub = chi2inv(0.975,2);
+lb = chi2inv(0.025,2);
+NIS_Radio_perc = length(NIS_Radio.Data(NIS_Radio.Data<=ub & NIS_Radio.Data>=lb ))/...
+    length(NIS_Radio.Data) * 100;
+
+figure;
+grid on
+h = scatterhist(NIS_Radio.Time/3600, NIS_Radio.Data, ...
+    'Direction', 'out', ...
+    'Location', 'SouthEast', ...
+    'Kernel', 'on', ...
+    'Marker', '.');
+xlabel('Time');
+ylabel('Value');
+hold(h(1),"on")
+plot([0,NIS_Radio.Time(end)/3600,nan,0,NIS_Radio.Time(end)/3600],[ub,ub,nan,lb,lb])
+set(h(1), 'YAxisLocation', 'left');
+xlim([0,NIS_Radio.Time(end)/3600])
+yLims = ylim(h(1));
+xLims = xlim(h(1));
+text(0.01,yLims(2)-2,num2str(NIS_Radio_perc)+"% inside the 95% bounds")
+hold(h(3), 'on');
+yLims = ylim(h(3));
+plot(h(3), [ub,ub,nan,lb,lb],[yLims,nan,yLims])
+delete(h(2))
+legend(h(1),'Data','bounds')
 % save  '..\..\..\..\..\..\..\PROVE\15gg_NEES_tuned.mat'  res -v7.3
