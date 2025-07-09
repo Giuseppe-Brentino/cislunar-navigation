@@ -20,7 +20,7 @@ parpool(poolsize);
 
 %% Define number of simulations and batches
 
-N_sim = 1;
+N_sim = 4;
 N_remaining = N_sim;
 N_batches = ceil(N_sim/poolsize);
 
@@ -133,6 +133,26 @@ for i = 1:N_batches
 
         end
 
+        % Normalized Mean Innovation
+        if exist('aNMI','var') == 1
+
+            % Star tracker
+            aNMI.st.Data = aNMI.st.Data + simulation(j).NMI_ST.Data;
+
+            % Radio
+            aNMI.radio.Data = aNMI.radio.Data +...
+                simulation(j).NMI_Radio.Data;
+
+        else
+
+            %Star tracker
+            aNMI.st.Data = simulation(j).NMI_ST.Data;
+            
+            % Radio
+            aNMI.radio.Data = simulation(j).NMI_Radio.Data;
+          
+        end
+
     end
 
     %%% clear simIn
@@ -155,8 +175,15 @@ aNIS.radio.N = squeeze(aNIS.radio.N);
 aNIS.st.Data = aNIS.st.Data ./ aNIS.st.N;
 aNIS.radio.Data = aNIS.radio.Data ./ aNIS.radio.N;
 
-
 data_file.aNIS = aNIS;
+
+% aNMI
+aNMI.st.Data = squeeze(aNMI.st.Data);
+aNMI.radio.Data = squeeze(aNMI.radio.Data);
+aNMI.st.Data = aNMI.st.Data ./ aNIS.st.N';
+aNMI.radio.Data = aNMI.radio.Data ./ aNIS.radio.N';
+
+data_file.aNMI = aNMI;
 
 % filter Time
 data_file.time = simulation(1).errors.xm.Time;
