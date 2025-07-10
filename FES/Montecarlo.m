@@ -189,6 +189,8 @@ data_file.aNMI = aNMI;
 data_file.time = simulation(1).errors.xm.Time;
 
 
+PostProcess(data_file)
+
 %% Auxiliary functions
 
 function out = saveRawData(data, decimation)
