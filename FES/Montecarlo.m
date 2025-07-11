@@ -78,14 +78,15 @@ for i = 1:N_batches
         % Estimation error
         data_file.est_errors(run_size+j-1,1) = saveRawData(simulation(j).errors, decimation);
 
+        % Estimated 3 sigma boundaries
+        data_file.est_three_sigma(run_size+j-1,1) = saveRawData(simulation(j).threeSigma, decimation);
+
+        % Save one full error array
         if N_remaining == 0 && j == batch_size % Save the full error for the last simulation
             decimation = 1;
             data_file.full_error = saveRawData(simulation(j).errors, decimation);
         end
-
-        % Estimated 3 sigma boundaries
-        data_file.est_three_sigma(run_size+j-1,1) = saveRawData(simulation(j).threeSigma, decimation);
-
+        
         % ST innovation
         data_file.st_innovation(run_size+j-1,1) = saveInnovation ...
             (simulation(j).innovation_ST,simulation(j).NIS_ST_flag.Data);
@@ -201,9 +202,9 @@ out.attitude = squeeze(data.attitude.Data(:,1,1:decimation:end));
 out.xb = squeeze(data.xb.Data(:,1,1:decimation:end));
 out.vb = squeeze(data.vb.Data(:,1,1:decimation:end));
 out.bias_gyro = squeeze(data.bias_gyro.Data(:,1,1:decimation:end));
-out.bias_clock = squeeze(data.bias_clock.Data(:,1,1:decimation:end));
-out.drift_clock = squeeze(data.drift_clock.Data(:,1,1:decimation:end));
-out.aging_clock = squeeze(data.aging_clock.Data(:,1,1:decimation:end));
+out.bias_clock = permute(squeeze(data.bias_clock.Data(:,1,1:decimation:end)),[2 1 3]);
+out.drift_clock = permute(squeeze(data.drift_clock.Data(:,1,1:decimation:end)),[2 1 3]);
+out.aging_clock = permute(squeeze(data.aging_clock.Data(:,1,1:decimation:end)),[2 1 3]);
 end
 
 function out = saveInnovation(innovation_data,flag)
