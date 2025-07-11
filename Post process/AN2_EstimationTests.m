@@ -1,23 +1,45 @@
-classdef AN2_EstimationTests
-    %AN2_ESTIMATIONTESTS Summary of this class goes here
-    %   Detailed explanation goes here
-    
-    properties
-        Property1
-    end
+classdef AN2_EstimationTests < PostProcess
+    % Compute the Normalized Estimation Error Squared and the Normalized
+    % Mean Estimation Errors
     
     methods
-        function obj = AN2_EstimationTests(inputArg1,inputArg2)
-            %AN2_ESTIMATIONTESTS Construct an instance of this class
-            %   Detailed explanation goes here
-            obj.Property1 = inputArg1 + inputArg2;
+        function obj = AN2_EstimationTests(varargin)
+
+            % Get data
+            if isempty(varargin)
+                [name,path] = uigetfile;
+                data = strcat(path,name);
+                data_file = matfile(data);
+            else
+                data_file = varargin{1};
+            end
+
+            % Initialize parent class
+            obj = obj@PostProcess(data_file);
+
+            % Get NEES
+            aNEES = data_file.aNEES;
+            time = data_file.time;
+
+            % Get number of simulations
+            Nsim = length(data_file.est_errors);
+            % 95% bounds
+            
+            ub = chi2inv(0.975,21*Nsim)/Nsim; % 21 states
+            lb = chi2inv(0.025,21*Nsim)/Nsim;
+
+            %% Plots
+
+            % Plot NEES
+            x_data = {{time/3600}};
+            y_data = {{aNEES}};
+            ub_plot = {{repmat(ub,length(time),1)}};
+            lb_plot = {{repmat(lb,length(time),1)}};
+            names = {{'NEES','Bounds'}};
+            obj.plot_scatterHist('x_data',x_data,'y_data',y_data,'ub',ub_plot,...
+                'lb',lb_plot,'label_x',{{'Time [h]'}},'label_y',{{'NEES'}},'names',names)
         end
-        
-        function outputArg = method1(obj,inputArg)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputArg = obj.Property1 + inputArg;
-        end
+       
     end
 end
 

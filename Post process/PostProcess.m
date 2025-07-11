@@ -124,6 +124,129 @@ classdef PostProcess
 
         end
 
+        function plot_scatterHist (obj,varargin)
+            %% Parse input
+            p = inputParser;
+
+            addParameter(p, 'sub_rows',1);
+            addParameter(p, 'sub_cols',1);
+            addParameter(p, 'label_x',cell(1));
+            addParameter(p, 'label_y',cell(1));
+            addParameter(p, 'x_data',cell(1));
+            addParameter(p, 'y_data',cell(1));
+            addParameter(p, 'names',cell(1));
+            addParameter(p, 'lim_x',{});
+            addParameter(p, 'lim_y',{});
+            addParameter(p,'ub',{});
+            addParameter(p,'lb',{});
+
+            parse(p, varargin{:});
+
+            sub_rows = p.Results.sub_rows;
+            sub_cols = p.Results.sub_cols;
+            label_x = p.Results.label_x;
+            if length(label_x)<sub_rows*sub_cols
+                temp = cat(2,label_x,cell(1,sub_cols*sub_rows-length(label_x)));
+                label_x = temp;
+            end
+            label_y = p.Results.label_y;
+            if length(label_y)<sub_rows*sub_cols
+                temp = cat(2,label_y,cell(1,sub_cols*sub_rows-length(label_y)));
+                label_y = temp;
+            end
+            x_data = p.Results.x_data;
+            y_data = p.Results.y_data;
+            names = p.Results.names;
+            lim_x = p.Results.lim_x;
+            lim_y = p.Results.lim_y;
+            ub = p.Results.ub;
+            lb = p.Results.lb;
+
+            %% Make plot
+            figure
+            hold on
+            grid on
+
+            for i = 1:sub_rows % Iterate over the rows of the subplot
+                for j = 1:sub_cols % Iterate over the columns of the subplot
+
+                    current_element = (i-1)*sub_cols+j; % Compute current element in the grid
+
+                    subplot(sub_rows,sub_cols,current_element) % create subplot
+                    hold on
+                    grid on
+
+                    % Plot data
+                    for k = 1:length(x_data{current_element})
+                        % Plot scatter
+                        h = scatterhist(x_data{current_element}{k},...
+                            y_data{current_element}{k}, ...
+                            'Direction', 'out', ...
+                            'Location', 'SouthEast', ...
+                            'Kernel', 'on', ...
+                            'Marker', '.');
+                        if ~isempty(lim_x)
+                            xlim(lim_x{current_element})
+                        end
+                        if ~isempty(lim_y)
+                            ylim(lim_y{current_element})
+                        end
+                        xlabel(label_x{current_element})
+                        ylabel(label_y{current_element})
+
+                        if current_element<=length(ub) && current_element<=length(lb)
+                            
+                            % Add bounds in scatter plot
+                            hold(h(1),"on")
+                            plot([x_data{current_element}{k};nan;x_data{current_element}{k}],...
+                                [ub{current_element}{k};nan;lb{current_element}{k}])
+                            set(h(1), 'YAxisLocation', 'left');
+
+                            % Add bounds in dist plot
+                            hold(h(3),"on")
+                            yLims = ylim(h(3));
+                            bound = [ub{current_element}{k};nan;lb{current_element}{k}];
+                            plot(h(3),bound,[linspace(yLims(1),yLims(2),(length(bound)-1)/2),nan,...
+                                linspace(yLims(1),yLims(2),(length(bound)-1)/2)])
+                            
+                        elseif current_element<=length(ub)
+
+                            % Add upper bound in scatter plot
+                            hold(h(1),"on")
+                            plot(x_data{current_element}{k},ub{current_element})
+                            set(h(1), 'YAxisLocation', 'left');
+
+                            % Add upper bound in dist plot
+                            hold(h(3),"on")
+                            yLims = ylim(h(3));
+                            bound = [ub{current_element}{k}];
+                            plot(h(3),bound,linspace(yLims(1),yLims(2),length(bound)))
+
+                        elseif current_element<=length(lb)
+
+                            % Add lower bound in scatter plot
+                            hold(h(1),"on")
+                            plot(x_data{current_element}{k},lb{current_element})
+                            set(h(1), 'YAxisLocation', 'left');
+
+                            % Add lower bound in dist plot
+                            hold(h(3),"on")
+                            yLims = ylim(h(3));
+                            bound = [lb{current_element}{k}];
+                            plot(h(3),bound,linspace(yLims(1),yLims(2),length(bound)))
+                        end
+                        try
+                            legend(h(1),names{current_element});
+                        catch
+                        end
+                        % Remove lower distribution
+                        delete(h(2))
+                    end
+                end
+            end
+        end
+
+
         function updateDMSLabels(obj,ax)
             yt = get(ax, 'YTick')*180/pi;  % Get current y-axis ticks
             ylabels = arrayfun(@(x) obj.deg2dmsstr(x), yt, 'UniformOutput', false);
@@ -131,30 +254,30 @@ classdef PostProcess
         end
 
         function dmsStr = deg2dmsstr(obj,deg)
-    % Convert decimal degrees to string with degrees, minutes, seconds
-    signStr = '';
-    if deg < 0
-        signStr = '-';
-        deg = abs(deg);
-    end
+            % Convert decimal degrees to string with degrees, minutes, seconds
+            signStr = '';
+            if deg < 0
+                signStr = '-';
+                deg = abs(deg);
+            end
 
-    d = floor(deg);
-    remainder = (deg - d) * 60;
-    m = floor(remainder);
-    s = round((remainder - m) * 60);
+            d = floor(deg);
+            remainder = (deg - d) * 60;
+            m = floor(remainder);
+            s = round((remainder - m) * 60);
 
-    % Correct rounding overflow
-    if s == 60
-        s = 0;
-        m = m + 1;
-    end
-    if m == 60
-        m = 0;
-        d = d + 1;
-    end
+            % Correct rounding overflow
+            if s == 60
+                s = 0;
+                m = m + 1;
+            end
+            if m == 60
+                m = 0;
+                d = d + 1;
+            end
 
-    dmsStr = sprintf('%s%d°%02d''%02d"', signStr, d, m, s);
-end
+            dmsStr = sprintf('%s%d°%02d''%02d"', signStr, d, m, s);
+        end
 
 
     end
