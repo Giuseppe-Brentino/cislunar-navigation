@@ -56,6 +56,9 @@ classdef PostProcess
             addParameter(p, 'x_data',cell(1));
             addParameter(p, 'y_data',cell(1));
             addParameter(p, 'names',cell(1));
+            addParameter(p, 'lim_x',{});
+            addParameter(p, 'lim_y',{});
+            addParameter(p, 'DMS_angles',false,@islogical);
 
             parse(p, varargin{:});
 
@@ -74,6 +77,9 @@ classdef PostProcess
             x_data = p.Results.x_data;
             y_data = p.Results.y_data;
             names = p.Results.names;
+            DMS_angles = p.Results.DMS_angles;
+            lim_x = p.Results.lim_x;
+            lim_y = p.Results.lim_y;
 
             %% Make plot
             figure
@@ -100,10 +106,56 @@ classdef PostProcess
                     end
                     xlabel(label_x{current_element})
                     ylabel(label_y{current_element})
+                    if DMS_angles
+                        % Initial DMS label update
+                        obj.updateDMSLabels(gca);
+
+                        % Add listener for dynamic updates on zoom/pan/resize
+                        addlistener(gca, 'MarkedClean', @(src, evt) obj.updateDMSLabels(src));
+                    end
+                    if ~isempty(lim_x)
+                        xlim(lim_x{current_element})
+                    end
+                    if ~isempty(lim_y)
+                        ylim(lim_y{current_element})
+                    end
                 end
             end
 
         end
+
+        function updateDMSLabels(obj,ax)
+            yt = get(ax, 'YTick')*180/pi;  % Get current y-axis ticks
+            ylabels = arrayfun(@(x) obj.deg2dmsstr(x), yt, 'UniformOutput', false);
+            set(ax, 'YTickLabel', ylabels);
+        end
+
+        function dmsStr = deg2dmsstr(obj,deg)
+    % Convert decimal degrees to string with degrees, minutes, seconds
+    signStr = '';
+    if deg < 0
+        signStr = '-';
+        deg = abs(deg);
+    end
+
+    d = floor(deg);
+    remainder = (deg - d) * 60;
+    m = floor(remainder);
+    s = round((remainder - m) * 60);
+
+    % Correct rounding overflow
+    if s == 60
+        s = 0;
+        m = m + 1;
+    end
+    if m == 60
+        m = 0;
+        d = d + 1;
+    end
+
+    dmsStr = sprintf('%s%d°%02d''%02d"', signStr, d, m, s);
+end
+
 
     end
 
