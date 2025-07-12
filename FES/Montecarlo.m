@@ -37,8 +37,12 @@ current_date.Format = 'yyyy_MM_dd_HHmmss';
 % Initialize data stricture
 emptyStruct = struct;
 
-% Create data file
-file_path = "../Simulations results/montecarloRun_"+string(current_date)+".mat";
+% Create folder
+folder_name = ".."+filesep+"Simulations results"+filesep+"montecarloRun_"...
+    +string(current_date);
+mkdir(folder_name)
+% Create .mat
+file_path = folder_name+filesep+"montecarloRun_"+string(current_date)+".mat";
 save(file_path,'-struct', 'emptyStruct', '-mat', '-v7.3');
 
 % Create mat file object
