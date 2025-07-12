@@ -141,7 +141,7 @@ classdef PostProcess
             addParameter(p, 'lim_y',{});
             addParameter(p,'ub',{});
             addParameter(p,'lb',{});
-
+            addParameter(p,'hist_bounds',true,@islogical);
             parse(p, varargin{:});
 
             sub_rows = p.Results.sub_rows;
@@ -163,7 +163,7 @@ classdef PostProcess
             lim_y = p.Results.lim_y;
             ub = p.Results.ub;
             lb = p.Results.lb;
-
+            hist_bounds = p.Results.hist_bounds;
             %% Make plot
             figure
             hold on
@@ -188,10 +188,11 @@ classdef PostProcess
                             'Kernel', 'on', ...
                             'Marker', '.');
                         if ~isempty(lim_x)
-                            xlim(lim_x{current_element})
+                            xlim(h(1),lim_x{current_element})
                         end
                         if ~isempty(lim_y)
-                            ylim(lim_y{current_element})
+                            ylim(h(1),lim_y{current_element})
+                            xlim(h(3),lim_y{current_element})
                         end
                         xlabel(label_x{current_element})
                         ylabel(label_y{current_element})
@@ -205,12 +206,13 @@ classdef PostProcess
                             set(h(1), 'YAxisLocation', 'left');
 
                             % Add bounds in dist plot
-                            hold(h(3),"on")
-                            yLims = ylim(h(3));
-                            bound = [ub{current_element}{k};nan;lb{current_element}{k}];
-                            plot(h(3),bound,[linspace(yLims(1),yLims(2),(length(bound)-1)/2),nan,...
-                                linspace(yLims(1),yLims(2),(length(bound)-1)/2)])
-
+                            if hist_bounds
+                                hold(h(3),"on")
+                                yLims = ylim(h(3));
+                                bound = [ub{current_element}{k};nan;lb{current_element}{k}];
+                                plot(h(3),bound,[linspace(yLims(1),yLims(2),(length(bound)-1)/2),nan,...
+                                    linspace(yLims(1),yLims(2),(length(bound)-1)/2)])
+                            end
                         elseif current_element<=length(ub)
 
                             % Add upper bound in scatter plot
@@ -219,10 +221,12 @@ classdef PostProcess
                             set(h(1), 'YAxisLocation', 'left');
 
                             % Add upper bound in dist plot
-                            hold(h(3),"on")
-                            yLims = ylim(h(3));
-                            bound = [ub{current_element}{k}];
-                            plot(h(3),bound,linspace(yLims(1),yLims(2),length(bound)))
+                            if hist_bounds
+                                hold(h(3),"on")
+                                yLims = ylim(h(3));
+                                bound = [ub{current_element}{k}];
+                                plot(h(3),bound,linspace(yLims(1),yLims(2),length(bound)))
+                            end
 
                         elseif current_element<=length(lb)
 
@@ -232,10 +236,12 @@ classdef PostProcess
                             set(h(1), 'YAxisLocation', 'left');
 
                             % Add lower bound in dist plot
-                            hold(h(3),"on")
-                            yLims = ylim(h(3));
-                            bound = [lb{current_element}{k}];
-                            plot(h(3),bound,linspace(yLims(1),yLims(2),length(bound)))
+                            if hist_bounds
+                                hold(h(3),"on")
+                                yLims = ylim(h(3));
+                                bound = [lb{current_element}{k}];
+                                plot(h(3),bound,linspace(yLims(1),yLims(2),length(bound)))
+                            end
                         end
                         try
                             if ~isempty(names{current_element})

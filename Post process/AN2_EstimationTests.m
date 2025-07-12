@@ -34,7 +34,7 @@ classdef AN2_EstimationTests < PostProcess
             %% NEES data
             NEES_within = length(aNEES(aNEES<=ub & aNEES>=lb ))/length(aNEES) * 100;
             NEES_belowMax = length(aNEES(aNEES<=ub))/length(aNEES) * 100;
-            NEES_aboveMin = length(aNEES(aNEES>=ub))/length(aNEES) * 100;
+            NEES_aboveMin = length(aNEES(aNEES>=lb))/length(aNEES) * 100;
 
             %% NMEE data
             NMEE_target_std = 1/Nsim;
