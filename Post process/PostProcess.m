@@ -59,6 +59,7 @@ classdef PostProcess
             addParameter(p, 'lim_x',{});
             addParameter(p, 'lim_y',{});
             addParameter(p, 'DMS_angles',false,@islogical);
+            addParameter(p,'ax_legend',false,@islogical)
 
             parse(p, varargin{:});
 
@@ -80,7 +81,7 @@ classdef PostProcess
             DMS_angles = p.Results.DMS_angles;
             lim_x = p.Results.lim_x;
             lim_y = p.Results.lim_y;
-
+            ax_legend = p.Results.ax_legend;
             %% Make plot
             figure
             hold on
@@ -98,13 +99,15 @@ classdef PostProcess
                     % Plot data
                     for k = 1:length(x_data{current_element})
                         % Plot
-                        plot(x_data{current_element}{k},y_data{current_element}{k})
+                        h(k) = plot(x_data{current_element}{k},y_data{current_element}{k});
                     end
-                    try
-                        if ~isempty(names{current_element})
-                            legend(names{current_element});
+                    if ~ax_legend
+                        try
+                            if ~isempty(names{current_element})
+                                legend(names{current_element});
+                            end
+                        catch
                         end
-                    catch
                     end
                     xlabel(label_x{current_element})
                     ylabel(label_y{current_element})
@@ -123,7 +126,10 @@ classdef PostProcess
                     end
                 end
             end
-
+            if ax_legend
+                ax = axes('Position',[0 0 1 1],'Visible','off');
+                legend(ax,h, names);
+            end
         end
 
         function plot_scatterHist (obj,varargin)
@@ -142,6 +148,7 @@ classdef PostProcess
             addParameter(p,'ub',{});
             addParameter(p,'lb',{});
             addParameter(p,'hist_bounds',true,@islogical);
+
             parse(p, varargin{:});
 
             sub_rows = p.Results.sub_rows;
@@ -184,7 +191,7 @@ classdef PostProcess
                         h = scatterhist(x_data{current_element}{k},...
                             y_data{current_element}{k}, ...
                             'Direction', 'out', ...
-                            'Location', 'SouthEast', ...
+                            'Location', 'NorthEast', ...
                             'Kernel', 'on', ...
                             'Marker', '.');
                         if ~isempty(lim_x)
@@ -197,13 +204,15 @@ classdef PostProcess
                         xlabel(label_x{current_element})
                         ylabel(label_y{current_element})
 
+                        set(h(1), 'YAxisLocation', 'left');
+                        set(h(1), 'XAxisLocation','bottom');
+
                         if current_element<=length(ub) && current_element<=length(lb)
 
                             % Add bounds in scatter plot
                             hold(h(1),"on")
                             plot([x_data{current_element}{k};nan;x_data{current_element}{k}],...
-                                [ub{current_element}{k};nan;lb{current_element}{k}])
-                            set(h(1), 'YAxisLocation', 'left');
+                                [ub{current_element}{k};nan;lb{current_element}{k}]);
 
                             % Add bounds in dist plot
                             if hist_bounds
@@ -217,8 +226,7 @@ classdef PostProcess
 
                             % Add upper bound in scatter plot
                             hold(h(1),"on")
-                            plot(x_data{current_element}{k},ub{current_element})
-                            set(h(1), 'YAxisLocation', 'left');
+                            plot(x_data{current_element}{k},ub{current_element});
 
                             % Add upper bound in dist plot
                             if hist_bounds
@@ -232,8 +240,7 @@ classdef PostProcess
 
                             % Add lower bound in scatter plot
                             hold(h(1),"on")
-                            plot(x_data{current_element}{k},lb{current_element})
-                            set(h(1), 'YAxisLocation', 'left');
+                            plot(x_data{current_element}{k},lb{current_element});
 
                             % Add lower bound in dist plot
                             if hist_bounds
@@ -245,12 +252,23 @@ classdef PostProcess
                         end
                         try
                             if ~isempty(names{current_element})
-                                legend(h(1),names{current_element});
+                                ax = axes('Position',[0 0 1 1],'Visible','off');
+                                legend(ax,flip(h(1).Children),names{current_element});
                             end
                         catch
                         end
-                        % Remove lower distribution
-                        delete(h(2))
+                        % Delete top histogram
+                        delete(h(2));
+
+                        % Adjust scatter axes
+                        pos1 = get(h(1), 'Position');
+                        pos1(2) = pos1(2) + 0.1;
+                        set(h(1), 'Position', pos1);
+
+                        % Adjust side histogram axes similarly
+                        pos3 = get(h(3), 'Position');
+                        pos3(2) = pos1(2);
+                        set(h(3), 'Position', pos3);
                     end
                 end
             end

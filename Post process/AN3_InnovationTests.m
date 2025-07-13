@@ -128,7 +128,7 @@ classdef AN3_InnovationTests < PostProcess
             fprintf(fid, '%e ', NMI_std);
             fprintf(fid, '\n');
             fprintf(fid, 'NMI target std: %.4f \n',NMI_target_std);
-            Close file
+            % Close file
             fclose(fid);
         end
 
