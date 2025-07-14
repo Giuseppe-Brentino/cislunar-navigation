@@ -146,6 +146,7 @@ else
 end
 
 markers = {
+    '.'
     'o'
     '<'
     'square'

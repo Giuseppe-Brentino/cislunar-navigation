@@ -60,6 +60,7 @@ classdef PostProcess
             addParameter(p, 'lim_y',{});
             addParameter(p, 'DMS_angles',false,@islogical);
             addParameter(p,'ax_legend',false,@islogical)
+            addParameter(p,'isscatter',false,@islogical)
 
             parse(p, varargin{:});
 
@@ -82,6 +83,7 @@ classdef PostProcess
             lim_x = p.Results.lim_x;
             lim_y = p.Results.lim_y;
             ax_legend = p.Results.ax_legend;
+            isscatter = p.Results.isscatter;
             %% Make plot
             figure
             hold on
@@ -99,7 +101,11 @@ classdef PostProcess
                     % Plot data
                     for k = 1:length(x_data{current_element})
                         % Plot
-                        h(k) = plot(x_data{current_element}{k},y_data{current_element}{k});
+                        if isscatter
+                            h(k) = scatter(x_data{current_element}{k},y_data{current_element}{k});
+                        else
+                            h(k) = plot(x_data{current_element}{k},y_data{current_element}{k});
+                        end
                     end
                     if ~ax_legend
                         try
