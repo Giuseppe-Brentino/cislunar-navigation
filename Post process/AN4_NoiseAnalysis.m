@@ -38,32 +38,58 @@ classdef AN4_NoiseAnalysis < PostProcess
             full_sim_data = data_file.full_error;
             fft_time = full_sim_data.Time;
             fft_xm = full_sim_data.xm';
+            fft_xb = full_sim_data.xb';
 
             % Compute fft
-            [freq, mag] = compute_fft(obj,fft_time,fft_xm);
-
+            [freq_xm, mag_xm] = compute_fft(obj,fft_time,fft_xm);
+            [freq_xb, mag_xb] = compute_fft(obj,fft_time,fft_xb);
             %% Plots
 
             % Autocorrelation st
+            title = 'AN4_autocorrelation_st';
+            WHratio = 1;
+            percTextWidth = 0.45;
             x_data = {repmat({st_time/3600},3,1)};
             y_data = {{st_acorr(1,:),st_acorr(2,:),st_acorr(3,:)}};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Time [h]'},...
                 'label_y',{'auto correlation'},'names',{{'meas 1','meas 2','meas 3'}},...
-                'isscatter',true);
+                'isscatter',true,'lim_y',{[-0.03 0.03]},'title',title,...
+                'WHratio',WHratio,'percTextWidth',percTextWidth);
 
             % Autocorrelation radio
+            title = 'AN4_autocorrelation_st';
             x_data = {repmat({radio_time/3600},2,1)};
             y_data = {{radio_acorr(2,:),radio_acorr(1,:)}};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Time [h]'},...
                 'label_y',{'auto correlation'},'names',{{'range rate','range'}},...
-                'isscatter',true);
+                'isscatter',true,'lim_y',{[-0.05 0.05]},'title',title,...
+                'WHratio',WHratio,'percTextWidth',percTextWidth);
 
             % FFT
-            x_data = {repmat({freq},3,1)};
-            y_data = {{mag(:,1),mag(:,2),mag(:,3)}};
+
+            % Main
+            x_data = {repmat({freq_xm},3,1)};
+            y_data = {{mag_xm(:,1),mag_xm(:,2),mag_xm(:,3)}};
+            title = 'AN4_FFT_main_Orbit';
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Frequency [Hz]'},...
                 'label_y',{'Magnitude'},'names',{{'$e_x$ main spacecraft',...
-                '$e_y$ main spacecraft','$e_z$ main spacecraft'}});
+                '$e_y$ main spacecraft','$e_z$ main spacecraft'}},'lim_x',{[0 5.5e-4]},...
+                'title',title,'WHratio',WHratio,'percTextWidth',percTextWidth);
+            title = 'AN4_FFT_main_Update';
+            obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Frequency [Hz]'},...
+                'label_y',{'Magnitude'},'names',{{'$e_x$',...
+                '$e_y$ main spacecraft','$e_z$ main spacecraft'}},'lim_y',{[0 4e-5]},...
+                'title',title,'WHratio',WHratio,'percTextWidth',percTextWidth);
+
+            % Beacon
+            title = 'AN4_FFT_beacon';
+            x_data = {repmat({freq_xb},3,1)};
+            y_data = {{mag_xb(:,1),mag_xb(:,2),mag_xb(:,3)}};
+            obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Frequency [Hz]'},...
+                'label_y',{'Magnitude'},'names',{{'$e_x$ beacon spacecraft',...
+                '$e_y$ beacon spacecraft','$e_z$ beacon spacecraft'}},...
+                'lim_x',{[0 5.5e-4]}, 'lim_y',{[0 0.025]},...
+                'title',title,'WHratio',WHratio,'percTextWidth',percTextWidth);
         end
 
         function [time, auto_corr] = compute_autocorrelation(obj,data)

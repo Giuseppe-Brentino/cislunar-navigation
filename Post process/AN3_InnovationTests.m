@@ -76,33 +76,48 @@ classdef AN3_InnovationTests < PostProcess
             lb_plot = {{obj.fillForward(lb_st)}};
 
             names = {{'NIS star Tracker','Bounds'}};
+            title = 'AN3_NIS_st';
+            WHratio = 1.5;
+            percTextWidth = 0.7;
+
             obj.plot_scatterHist('x_data',x_data,'y_data',y_data,'ub',ub_plot,...
                 'lb',lb_plot,'label_x',{{'Time [h]'}},'label_y',{{'NIS'}},...
-                'names',names,'hist_bounds',false)
+                'names',names,'hist_bounds',false,'title',title,'WHratio',WHratio,...
+                'percTextWidth',percTextWidth);
 
             % Plot NIS Radio
-                        x_data = {{time/3600}};
+            x_data = {{time/3600}};
             y_data = {{aNIS.radio.Data}};
             % remove nan for plot
             ub_plot = {{obj.fillForward(ub_radio)}};
             lb_plot = {{obj.fillForward(lb_radio)}};
             names = {{'NIS radio','Bounds'}};
-
+            title = 'AN3_NIS_radio';
+            WHratio = 1.5;
+            percTextWidth = 0.7;
             obj.plot_scatterHist('x_data',x_data,'y_data',y_data,'ub',ub_plot,...
                 'lb',lb_plot,'label_x',{{'Time [h]'}},'label_y',{{'NIS'}},...
-                'names',names,'hist_bounds',false);
+                'names',names,'hist_bounds',false,'title',title,'WHratio',WHratio,...
+                'percTextWidth',percTextWidth);
 
             % Plot NMI st
             data = {{aNMI.st.Data(1,:)},{aNMI.st.Data(2,:)},{aNMI.st.Data(3,:)}};
             label_x = {{'x angle'},{'y angle'},{'z angle'}};
+            title = 'AN3_NMI_st';
+            WHratio = 2;
+            percTextWidth = 0.8;
             obj.plot_histogram('data',data,'sub_cols',3,'sub_rows',1,'Nbins',20,...
-                'fit_curve','Normal','label_x',label_x)
+                'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',WHratio,...
+                'percTextWidth',percTextWidth);
 
             % Plot NMI radio
             data = {{aNMI.radio.Data(1,:)},{aNMI.radio.Data(2,:)}};
             label_x = {{'range'},{'range rate'},};
+            title = 'AN3_NMI_radio';
             obj.plot_histogram('data',data,'sub_cols',2,'sub_rows',1,'Nbins',20,...
-                'fit_curve','Normal','label_x',label_x)
+                'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',WHratio,...
+                'percTextWidth',percTextWidth);
+
 
             %% Write text file
             dataPath = data_file.Properties.Source;

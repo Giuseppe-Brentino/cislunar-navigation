@@ -49,37 +49,59 @@ classdef AN2_EstimationTests < PostProcess
             ub_plot = {{repmat(ub,length(time),1)}};
             lb_plot = {{repmat(lb,length(time),1)}};
             names = {{'NEES','Bounds'}};
+            title = 'AN2_NEES';
+            WHratio = 1.5;
+            percTextWidth = 0.7;
             obj.plot_scatterHist('x_data',x_data,'y_data',y_data,'ub',ub_plot,...
-                'lb',lb_plot,'label_x',{{'Time [h]'}},'label_y',{{'NEES'}},'names',names)
+                'lb',lb_plot,'label_x',{{'Time [h]'}},'label_y',{{'NEES'}},...
+                'names',names,'title',title,'WHratio',WHratio,...
+                'percTextWidth',percTextWidth);
 
             % Plot NMEE pos vel main spacecraft
             data = {{aNMEE(1,:)},{aNMEE(2,:)},{aNMEE(3,:)},{aNMEE(4,:)},{aNMEE(5,:)},{aNMEE(6,:)}};
             label_x = {{'x position'},{'y position'},{'z position'},...
                 {'x velocity'},{'y velocity'},{'z velocity'}};
+             title = 'AN2_MainDist';
+            WHratio = 1.8;
+            percTextWidth = 0.8;
             obj.plot_histogram('data',data,'sub_cols',3,'sub_rows',2,'Nbins',20,...
-                'fit_curve','Normal','label_x',label_x)
+                'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',...
+                WHratio,'percTextWidth',percTextWidth)
 
             % Plot NMEE pos vel beacon spacecraft
             data = {{aNMEE(10,:)},{aNMEE(11,:)},{aNMEE(12,:)},{aNMEE(13,:)},...
                 {aNMEE(14,:)},{aNMEE(15,:)}};
             label_x = {{'x position'},{'y position'},{'z position'},...
                 {'x velocity'},{'y velocity'},{'z velocity'}};
+             title = 'AN2_BeaconDist';
+            WHratio = 1.8;
+            percTextWidth = 0.8;
             obj.plot_histogram('data',data,'sub_cols',3,'sub_rows',2,'Nbins',20,...
-                'fit_curve','Normal','label_x',label_x)
+                'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',...
+                WHratio,'percTextWidth',percTextWidth)
 
             % Plot NMEE attitude params
             data = {{aNMEE(7,:)},{aNMEE(8,:)},{aNMEE(9,:)},{aNMEE(16,:)},...
                 {aNMEE(17,:)},{aNMEE(18,:)}};
             label_x = {{'x attitude'},{'y attitude'},{'z attitude'},...
                 {'x gyroscope bias'},{'y gyroscope bias'},{'z gyroscope bias'}};
+            title = 'AN2_AttitudeDist';
+            WHratio = 1.8;
+            percTextWidth = 0.8;
             obj.plot_histogram('data',data,'sub_cols',3,'sub_rows',2,'Nbins',20,...
-                'fit_curve','Normal','label_x',label_x)
+                'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',...
+                WHratio,'percTextWidth',percTextWidth)
 
             % Plot NMEE clock params
             data = {{aNMEE(19,:)},{aNMEE(20,:)},{aNMEE(21,:)}};
             label_x = {{'Clock bias'},{'Clock drift'},{'Clock aging'}};
+            title = 'AN2_ClockDist';
+            WHratio = 2;
+            percTextWidth = 0.8;
             obj.plot_histogram('data',data,'sub_cols',3,'sub_rows',1,'Nbins',20,...
-                'fit_curve','Normal','label_x',label_x)
+                'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',...
+                WHratio,'percTextWidth',percTextWidth)
+
 
             %% Write text file
             dataPath = data_file.Properties.Source;

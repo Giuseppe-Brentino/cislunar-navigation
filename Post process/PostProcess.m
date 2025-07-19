@@ -61,7 +61,12 @@ classdef PostProcess
             addParameter(p, 'DMS_angles',false,@islogical);
             addParameter(p,'ax_legend',false,@islogical)
             addParameter(p,'isscatter',false,@islogical)
-
+            addParameter(p, 'addMarkers', false, @islogical);
+            addParameter(p, 'changeLineStyle', false, @islogical);
+            addParameter(p, 'WHratio', 0);
+            addParameter(p, 'title', '');
+            addParameter(p, 'percTextWidth', 1);
+            addParameter(p, 'figurePath', '');
             parse(p, varargin{:});
 
             sub_rows = p.Results.sub_rows;
@@ -84,6 +89,13 @@ classdef PostProcess
             lim_y = p.Results.lim_y;
             ax_legend = p.Results.ax_legend;
             isscatter = p.Results.isscatter;
+            addMarkers = p.Results.addMarkers;
+            changeLineStyle = p.Results.changeLineStyle;
+            WHratio = p.Results.WHratio;
+            figurePath = p.Results.figurePath;
+            title = p.Results.title;
+            percTextWidth = p.Results.percTextWidth;
+
             %% Make plot
             figure
             hold on
@@ -102,7 +114,7 @@ classdef PostProcess
                     for k = 1:length(x_data{current_element})
                         % Plot
                         if isscatter
-                            h(k) = scatter(x_data{current_element}{k},y_data{current_element}{k});
+                            h(k) = scatter(x_data{current_element}{k},y_data{current_element}{k},'.');
                         else
                             h(k) = plot(x_data{current_element}{k},y_data{current_element}{k});
                         end
@@ -136,6 +148,9 @@ classdef PostProcess
                 ax = axes('Position',[0 0 1 1],'Visible','off');
                 legend(ax,h, names);
             end
+
+            obj.saveFigure(gcf,title,percTextWidth,addMarkers,changeLineStyle,...
+                WHratio,figurePath)
         end
 
         function plot_scatterHist (obj,varargin)
@@ -154,7 +169,12 @@ classdef PostProcess
             addParameter(p,'ub',{});
             addParameter(p,'lb',{});
             addParameter(p,'hist_bounds',true,@islogical);
-
+            addParameter(p, 'addMarkers', false, @islogical);
+            addParameter(p, 'changeLineStyle', false, @islogical);
+            addParameter(p, 'WHratio', 0);
+            addParameter(p, 'title', '');
+            addParameter(p, 'percTextWidth', 1);
+            addParameter(p, 'figurePath', '');
             parse(p, varargin{:});
 
             sub_rows = p.Results.sub_rows;
@@ -177,6 +197,13 @@ classdef PostProcess
             ub = p.Results.ub;
             lb = p.Results.lb;
             hist_bounds = p.Results.hist_bounds;
+            addMarkers = p.Results.addMarkers;
+            changeLineStyle = p.Results.changeLineStyle;
+            WHratio = p.Results.WHratio;
+            figurePath = p.Results.figurePath;
+            title = p.Results.title;
+            percTextWidth = p.Results.percTextWidth;
+
             %% Make plot
             figure
             hold on
@@ -278,6 +305,8 @@ classdef PostProcess
                     end
                 end
             end
+            obj.saveFigure(gcf,title,percTextWidth,addMarkers,changeLineStyle,...
+                WHratio,figurePath)
         end
 
         function plot_histogram (obj,varargin)
@@ -295,7 +324,12 @@ classdef PostProcess
             addParameter(p, 'DMS_angles',false,@islogical);
             addParameter(p,'Nbins',10);
             addParameter(p,'fit_curve','');
-
+            addParameter(p, 'addMarkers', false, @islogical);
+            addParameter(p, 'changeLineStyle', false, @islogical);
+            addParameter(p, 'WHratio', 0);
+            addParameter(p, 'title', '');
+            addParameter(p, 'percTextWidth', 1);
+            addParameter(p, 'figurePath', '');
             parse(p, varargin{:});
 
             sub_rows = p.Results.sub_rows;
@@ -317,6 +351,12 @@ classdef PostProcess
             lim_y = p.Results.lim_y;
             Nbins = p.Results.Nbins;
             fit_curve = p.Results.fit_curve;
+            addMarkers = p.Results.addMarkers;
+            changeLineStyle = p.Results.changeLineStyle;
+            WHratio = p.Results.WHratio;
+            figurePath = p.Results.figurePath;
+            title = p.Results.title;
+            percTextWidth = p.Results.percTextWidth;
 
             %% Make plot
             figure
@@ -364,7 +404,8 @@ classdef PostProcess
                     end
                 end
             end
-
+            obj.saveFigure(gcf,title,percTextWidth,addMarkers,changeLineStyle,...
+                WHratio,figurePath)
         end
 
         function updateDMSLabels(obj,ax)
@@ -399,7 +440,21 @@ classdef PostProcess
             dmsStr = sprintf('%s%d°%02d''%02d"', signStr, d, m, s);
         end
 
+        function saveFigure(obj,fig,title,percTextWidth,addMarkers,changeLineStyle,...
+                WHRatio,figurePath)
 
+            if isempty(figurePath)
+                % Get file Path
+                dataPath = obj.data_file.Properties.Source;
+                [figurePath, ~, ~] = fileparts(dataPath);
+            end
+
+            % Export figure
+
+            exportStandardizedFigure(fig,title,percTextWidth,'figurePath',...
+                figurePath,'WHratio',WHRatio,'addMarkers',addMarkers,...
+                'changeLineStyle',changeLineStyle,'overwriteFigure',true);
+        end
     end
 
 end

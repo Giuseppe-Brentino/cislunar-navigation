@@ -95,6 +95,11 @@ classdef AN1_EstimationErrors < PostProcess
                 {vm_reshaped(:,3),RMSE.vm(3,:),[average.vm(3,:)+real_3sigma.vm(3,:),...
                 nan,average.vm(3,:)-real_3sigma.vm(3,:)],[est_3sigma.vm(3,:) nan -est_3sigma.vm(3,:)]}...
                 };
+            title = 'AN1_MainError';
+            WHratio = 1.2;
+            perchTextWidth = 0.9;
+            changeLineStyle = true;
+
             label_x = repmat({'Time [h]'},6,1);
             label_y = {'X error [km]','Y error [km]','Z error [km]',...
                 'X error [km/s]','Y error [km/s]','Z error [km/s]'};
@@ -102,7 +107,8 @@ classdef AN1_EstimationErrors < PostProcess
             legend = {'Errors','RMSE','real $3\sigma$','est $3\sigma$'};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',label_x,...
                 'label_y',label_y,'sub_cols',3,'sub_rows',2,'names',legend,...
-                'ax_legend',ax_legend);
+                'ax_legend',ax_legend,'title',title,'WHratio',WHratio,...
+                'percTextWidth',perchTextWidth,'changeLineStyle',changeLineStyle);
 
             % Plot Beacon SC Pos Vel
             y_data = { {xb_reshaped(:,1),RMSE.xb(1,:),[average.xb(1,:)+real_3sigma.xb(1,:)...
@@ -119,6 +125,7 @@ classdef AN1_EstimationErrors < PostProcess
                 nan,average.vb(3,:)-real_3sigma.vb(3,:)],[est_3sigma.vb(3,:) nan -est_3sigma.vb(3,:)]}...
                 };
 
+            title = 'AN1_BeaconError';
             label_x = repmat({'Time [h]'},6,1);
             label_y = {'X error [km]','Y error [km]','Z error [km]',...
                 'X error [km/s]','Y error [km/s]','Z error [km/s]'};
@@ -126,7 +133,8 @@ classdef AN1_EstimationErrors < PostProcess
             legend = {'Errors','RMSE','real $3\sigma$','est $3\sigma$'};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',label_x,...
                 'label_y',label_y,'sub_cols',3,'sub_rows',2,'names',legend,...
-                'ax_legend',ax_legend);
+                'ax_legend',ax_legend,'title',title,'WHratio',WHratio,...
+                'percTextWidth',perchTextWidth,'changeLineStyle',changeLineStyle);
 
             % Plot Attitude
             x_data = repmat({cat(1,{time_reshaped./3600},{errors(1).Time./3600},...
@@ -143,12 +151,16 @@ classdef AN1_EstimationErrors < PostProcess
                 [est_3sigma.attitude(3,:) nan -est_3sigma.attitude(3,:)]},...
                 };
             label_x = repmat({'Time [h]'},3,1);
-            label_y = {'X error','Y error','Z error'};
+            label_y = {'X error[rad]','Y error [rad]','Z error [rad]'};
             ax_legend = true;
+            title = 'AN1_Attitude';
+            WHratio = 1.3;
+            perchTextWidth = 0.7;
             legend = {'Errors','RMSE','real $3\sigma$','est $3\sigma$'};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',label_x,...
                 'label_y',label_y,'sub_cols',1,'sub_rows',3,'names',legend,...
-                'DMS_angles',true,'ax_legend',true);
+                'DMS_angles',false,'ax_legend',ax_legend,'title',title,'WHratio',WHratio,...
+                'percTextWidth',perchTextWidth,'changeLineStyle',changeLineStyle);
 
             % Plot bias gyro
             y_data = { {bias_g_reshaped(:,1),RMSE.bias_g(1,:),...
@@ -162,12 +174,16 @@ classdef AN1_EstimationErrors < PostProcess
                 [est_3sigma.bias_g(3,:) nan -est_3sigma.bias_g(3,:)]},...
                 };
             label_x = repmat({'Time [h]'},3,1);
-            label_y = {'X error [deg/s]','Y error [deg/s]','Z error [deg/s]'};
-             ax_legend = true;
+            label_y = {'X error [rad/s]','Y error [rad/s]','Z error [rad/s]'};
+            ax_legend = true;
+            title = 'AN1_gyro_bias';
+            WHratio = 1.3;
+            perchTextWidth = 0.7;
             legend = {'Errors','RMSE','real $3\sigma$','est $3\sigma$'};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',label_x,...
                 'label_y',label_y,'sub_cols',1,'sub_rows',3,'names',legend,...
-                'DMS_angles',true,'ax_legend',true);
+                'DMS_angles',false,'ax_legend',ax_legend,'title',title,'WHratio',WHratio,...
+                'percTextWidth',perchTextWidth,'changeLineStyle',changeLineStyle);
 
             % Plot clock errors
             y_data = { {bias_c_reshaped,RMSE.bias_c,...
@@ -181,14 +197,17 @@ classdef AN1_EstimationErrors < PostProcess
                 [est_3sigma.aging_c nan -est_3sigma.aging_c]},...
                 };
             label_x = repmat({'Time [h]'},3,1);
-            label_y = {'Bias error [km]','Drift error [km/s]','Aging error [km/s^2]'};
-             ax_legend = true;
+            label_y = {'Bias error [km]','Drift error [km/s]','Aging error [km/s$^2$]'};
+            ax_legend = true;
             legend = {'Errors','RMSE','real $3\sigma$','est $3\sigma$'};
-            lim_y = {[-1 1], [-2e-3 2e-3], [-1e-10 1e-10]};
-
+            lim_y = {[-1 1], [-2e-5 2e-5], [-0.5e-10 0.5e-10]};
+            title = 'AN1_clock_states';
+            WHratio = 1.1;
+            perchTextWidth = 0.7;
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',label_x,...
                 'label_y',label_y,'sub_cols',1,'sub_rows',3,'names',legend, ...
-                'lim_y',lim_y,'ax_legend',true);
+                'lim_y',lim_y,'ax_legend',true,'title',title,'WHratio',WHratio,...
+                'percTextWidth',perchTextWidth,'changeLineStyle',changeLineStyle);
         end
 
         function [mean_val, rmse, real_3sigma, est_3sigma] = get_stoch_params(obj,err,unc)
