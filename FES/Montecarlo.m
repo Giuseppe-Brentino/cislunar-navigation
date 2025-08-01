@@ -1,6 +1,8 @@
-close all;
 clearvars;
+close all;
 clc;
+
+proj = openProject(fullfile(pwd, ".."+filesep+"Cislunarnavigation.prj"));
 
 rng('default')
 
@@ -15,18 +17,18 @@ max_poolsize = temp_pool.NumWorkers;
 delete(temp_pool)
 
 % Start parpool with the right amount of workers
-poolsize = max(4,max_poolsize-1);
+poolsize = max(3, round(max_poolsize/2));
 parpool(poolsize);
 
 %% Define number of simulations and batches
 
-N_sim = 4;
+N_sim = 3;
 N_remaining = N_sim;
 N_batches = ceil(N_sim/poolsize);
 
 %% Downsampling coefficient
 
-decimation = 5; %save one sample every 5 for some of the parameters
+decimation = 300; %save one sample every 5 for some of the parameters
 
 %% Inizialize mat file
 
@@ -49,7 +51,7 @@ save(file_path,'-struct', 'emptyStruct', '-mat', '-v7.3');
 data_file = matfile(file_path, "Writable", true);
 
 %% Run simulations
-
+tic
 load_system('Simulator.slx')
 
 for i = 1:N_batches
@@ -69,16 +71,24 @@ for i = 1:N_batches
 
     % Initialize simulation objects
     simIn(1:batch_size) = Simulink.SimulationInput('Simulator');
+    for j = 1:batch_size
+        simIn(j) = simIn(j).setModelParameter('SimulationMode', 'rapid', ...
+            'RapidAcceleratorUpToDateCheck', 'off', ...
+            'SaveTime', 'on', ...
+            'SaveOutput', 'on');
+    end
 
     % Run simulations
-    simulation = parsim(simIn,UseFastRestart="on");
+    simulation =  parsim(simIn, 'ShowProgress', 'on', ...
+        'SetupFcn', @() sldemo_parallel_rapid_accel_sims_script_setup('Simulator'));
+
+    % simulation =sim('Simulator') ;
 
     % Update number of remaining simulations
     N_remaining = N_remaining-batch_size;
 
     %%% Save data
     for j = 1:batch_size
-
         % Estimation error
         data_file.est_errors(run_size+j-1,1) = saveRawData(simulation(j).errors, decimation);
 
@@ -90,7 +100,7 @@ for i = 1:N_batches
             decimation = 1;
             data_file.full_error = saveRawData(simulation(j).errors, decimation);
         end
-        
+
         % ST innovation
         data_file.st_innovation(run_size+j-1,1) = saveInnovation ...
             (simulation(j).innovation_ST,simulation(j).NIS_ST_flag.Data);
@@ -152,10 +162,10 @@ for i = 1:N_batches
 
             %Star tracker
             aNMI.st.Data = simulation(j).NMI_ST.Data;
-            
+
             % Radio
             aNMI.radio.Data = simulation(j).NMI_Radio.Data;
-          
+
         end
 
     end
@@ -193,9 +203,10 @@ data_file.aNMI = aNMI;
 % filter Time
 data_file.time = simulation(1).errors.xm.Time;
 
-
-PostProcess(data_file)
-
+%
+pp = PostProcess(data_file);
+pp.run_all;
+t = toc/3600
 %% Auxiliary functions
 
 function out = saveRawData(data, decimation)
@@ -214,4 +225,16 @@ end
 function out = saveInnovation(innovation_data,flag)
 out.data=squeeze(innovation_data.Data(:,1,flag));
 out.time=squeeze(innovation_data.Time(flag));
+end
+
+function sldemo_parallel_rapid_accel_sims_script_setup(mdl)
+% Temporarily change the current folder on the workers to an empty
+% folder so that any existing slprj folder on the client does not
+% interfere in the build process.
+currentFolder = pwd;
+tempDir = tempname;
+mkdir(tempDir);
+cd (tempDir);
+oc = onCleanup(@() cd (currentFolder));
+Simulink.BlockDiagram.buildRapidAcceleratorTarget(mdl);
 end

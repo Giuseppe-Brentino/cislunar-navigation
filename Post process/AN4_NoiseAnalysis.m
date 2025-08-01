@@ -57,7 +57,7 @@ classdef AN4_NoiseAnalysis < PostProcess
                 'WHratio',WHratio,'percTextWidth',percTextWidth);
 
             % Autocorrelation radio
-            title = 'AN4_autocorrelation_st';
+            title = 'AN4_autocorrelation_radio';
             x_data = {repmat({radio_time/3600},2,1)};
             y_data = {{radio_acorr(2,:),radio_acorr(1,:)}};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Time [h]'},...
@@ -77,7 +77,7 @@ classdef AN4_NoiseAnalysis < PostProcess
                 'title',title,'WHratio',WHratio,'percTextWidth',percTextWidth);
             title = 'AN4_FFT_main_Update';
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Frequency [Hz]'},...
-                'label_y',{'Magnitude'},'names',{{'$e_x$',...
+                'label_y',{'Magnitude'},'names',{{'$e_x$ main spacecraft',...
                 '$e_y$ main spacecraft','$e_z$ main spacecraft'}},'lim_y',{[0 4e-5]},...
                 'title',title,'WHratio',WHratio,'percTextWidth',percTextWidth);
 

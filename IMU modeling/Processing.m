@@ -64,4 +64,79 @@ end
 %% Save data to dictionary
 updateParameters('Sensors.sldd',{'IMU'},{IMU},true);
 
+%% 
+sensor = IMU.gyroscope;
+simulation = sim("noiseModel.slx","srcWorkspace",'current');
+
+% Compute Allan deviation from simulated angular velocity data
+t0 = sensor.sampleTime.value;
+meas = simulation.simout;
+[adev_sim, tau_sim] = allanDeviation(t0,meas);
+adev_sim = gyro.scaling*adev_sim;
+
+figure
+loglog(gyro.tau,gyro.adev,'DisplayName','Real')
+hold on
+grid on
+loglog(tau_sim,adev_sim,'--','DisplayName','Simulated')
+xlabel('Averaging time [s]')
+ylabel('Root Allan Variance [deg/h]')
+legend
+exportStandardizedFigure(gcf,'gyro_allan',0.65,'addMarkers',false,...
+    'overwriteFigure',true,'WHRatio',13/9)
+
+%% ACC
+sensor = IMU.accelerometer;
+simulation = sim("noiseModel.slx","srcWorkspace",'current');
+
+% Compute Allan deviation from simulated angular velocity data
+t0 = sensor.sampleTime.value;
+meas = simulation.simout;
+[adev_sim, tau_sim] = allanDeviation(t0,meas);
+adev_sim = 1000/9.81*adev_sim;
+
+figure
+loglog(acc.tau,acc.adev,'DisplayName','Real')
+hold on
+grid on
+loglog(tau_sim,adev_sim,'--','DisplayName','Simulated')
+xlabel('Averaging time [s]')
+ylabel('Root Allan Variance [mg]')
+legend
+exportStandardizedFigure(gcf,'acc_allan',0.65,'addMarkers',false,...
+    'overwriteFigure',true,'WHRatio',13/9)
+
+%% Clock
+s = getParameters('Sensors.sldd',{'clock'});
+clock = s{1};
+sensor = clock;
+simulation = sim("noiseModel.slx","srcWorkspace",'current');
+
+% Compute Allan deviation from simulated angular velocity data
+t0 = sensor.sampleTime.value;
+meas = simulation.simout;
+[adev_sim, tau_sim] = allanDeviation(t0,meas);
+
+tau_ideal = [1e-1 1e1 1e3 1e4];
+adev_ideal = [1e-12 1e-13 1e-13 2e-13];
+figure
+loglog(tau_ideal, adev_ideal,'DisplayName','Designed')
+hold on
+grid on
+loglog(tau_sim, adev_sim,'--','DisplayName','Simulated')
+xlabel('Averaging time [s]')
+ylabel('Root Allan Variance [s]')
+legend
+exportStandardizedFigure(gcf,'clock_allan',0.65,'addMarkers',false,...
+    'overwriteFigure',true,'WHRatio',13/9)
+
+
+
+
+
+
+
+
+
+
 

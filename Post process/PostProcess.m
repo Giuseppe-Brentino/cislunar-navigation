@@ -27,7 +27,7 @@ classdef PostProcess
             functionFolder = fileparts(currentFile);
 
             % Get all analysis scripts
-            analysis_files = dir(functionFolder+"/"+"*AN*.m");
+            analysis_files = dir(functionFolder+"/"+"AN*.m");
             analysis = {analysis_files.name};
 
             %Initialize error messages

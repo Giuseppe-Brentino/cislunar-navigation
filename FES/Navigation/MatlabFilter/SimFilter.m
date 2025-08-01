@@ -1,12 +1,20 @@
-clearvars;
+clearvars -except data Q_original;
 close all;
 clc;
 
+val = Q_original.value;
+val(1:3,1:3)= Q_original.value(1:3,1:3)/10;
+val(4:6,4:6)= Q_original.value(4:6,4:6)/100;
+pn = getParameters('Navigation.sldd',{'Q'});
+Q = pn{1};
+Q.value = val;
+updateParameters('Navigation.sldd',{'Q'},{Q},true);
 rng('default');
 
 tic
 res = sim('Simulator');
 t = toc/60
+% save  '..\..\..\..\..\..\..\15gg2_DATA.mat'  res -v7.3
 
 %%
 %%%%% POS
@@ -17,7 +25,7 @@ subplot(2,3,1)
 hold on
 grid on
 plot(res.errors.xm.Time/3600,res.errors.xm.Data(1,:))
-plot(res.threeSigma.xm.Time/3600,[res.threeSigma.xm.Data(:,1),-res.threeSigma.xm.Data(:,1)],'r--')
+plot(res.threeSigma.xm.Time/3600,[res.threeSigma.xm.Data(1,:);-res.threeSigma.xm.Data(1,:)],'r--')
 xlabel('Time [h]')
 ylabel('Main error x [km]')
 subplot(2,3,2)
