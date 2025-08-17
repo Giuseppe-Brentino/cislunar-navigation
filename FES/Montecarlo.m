@@ -72,15 +72,15 @@ for i = 1:N_batches
     % Initialize simulation objects
     simIn(1:batch_size) = Simulink.SimulationInput('Simulator');
     for j = 1:batch_size
-        simIn(j) = simIn(j).setModelParameter('SimulationMode', 'rapid', ...
-            'RapidAcceleratorUpToDateCheck', 'off', ...
-            'SaveTime', 'on', ...
-            'SaveOutput', 'on');
+        simIn(j) = simIn(j).setModelParameter('SimulationMode', 'accelerator');%, ...
+            % 'RapidAcceleratorUpToDateCheck', 'off', ...
+            % 'SaveTime', 'on', ...
+            % 'SaveOutput', 'on');
     end
 
     % Run simulations
-    simulation =  parsim(simIn, 'ShowProgress', 'on', ...
-        'SetupFcn', @() sldemo_parallel_rapid_accel_sims_script_setup('Simulator'));
+     simulation =  parsim(simIn, 'ShowProgress', 'on','StopOnError','on', 'UseFastRestart','on');%, ...
+        %'SetupFcn', @() sldemo_parallel_rapid_accel_sims_script_setup('Simulator'));
 
     % simulation =sim('Simulator') ;
 
@@ -110,14 +110,14 @@ for i = 1:N_batches
             (simulation(j).innovation_Radio,simulation(j).NIS_Radio_flag.Data);
 
         % Normalized Estimation Error Squared
-        if isfield(data_file,'aNEES')
-            data_file.aNEES = data_file.NEES + simulation(j).NEES.Data;
+        if ismember('aNEES',who(data_file))
+            data_file.aNEES = data_file.aNEES + simulation(j).NEES.Data;
         else
             data_file.aNEES = simulation(j).NEES.Data;
         end
 
         % Normalized Mean Estimation Error
-        if isfield(data_file,'aNMEE')
+        if ismember('aNMEE',who(data_file))
             data_file.aNMEE = data_file.aNMEE + simulation(j).aNMEE.Data;
         else
             data_file.aNMEE = simulation(j).NMEE.Data;
