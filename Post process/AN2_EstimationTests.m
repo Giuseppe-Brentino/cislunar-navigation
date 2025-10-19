@@ -68,6 +68,20 @@ classdef AN2_EstimationTests < PostProcess
                 'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',...
                 WHratio,'percTextWidth',percTextWidth)
 
+            % Plot NMEE evolution pos vel main spacecraft
+            x_data = repmat({cat(1,{time(1:100:end)/3600})},6,1);
+            y_data = {{aNMEE(1,1:100:end)},{aNMEE(2,1:100:end)},{aNMEE(3,1:100:end)},...
+                {aNMEE(4,1:100:end)},{aNMEE(5,1:100:end)},{aNMEE(6,1:100:end)}};
+            label_y = {{'x position'},{'y position'},{'z position'},...
+                {'x velocity'},{'y velocity'},{'z velocity'}};
+            label_x = repmat({'Time [h]'},6,1);
+             title = 'AN2_MainTime';
+            WHratio = 1.8;
+            percTextWidth = 0.8;
+            obj.plot_2D('x_data',x_data,'y_data',y_data,'sub_cols',3,'sub_rows',2,...
+                'label_x',label_x,'label_y',label_y,'title',title,'WHratio',...
+                WHratio,'percTextWidth',percTextWidth)
+
             % Plot NMEE pos vel beacon spacecraft
             data = {{aNMEE(10,:)},{aNMEE(11,:)},{aNMEE(12,:)},{aNMEE(13,:)},...
                 {aNMEE(14,:)},{aNMEE(15,:)}};

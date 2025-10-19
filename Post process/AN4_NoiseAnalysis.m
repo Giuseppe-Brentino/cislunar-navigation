@@ -29,8 +29,8 @@ classdef AN4_NoiseAnalysis < PostProcess
             radio_inn = obj.data_file.radio_innovation;
 
             % Compute average autocorrelation
-            [st_time, st_acorr] = compute_autocorrelation(obj,st_inn);
-            [radio_time, radio_acorr] = compute_autocorrelation(obj,radio_inn);
+            [st_time, st_acorr] = compute_autocorrelation(obj,st_inn(1));
+            [radio_time, radio_acorr] = compute_autocorrelation(obj,radio_inn(1));
 
             %% FFT
 
@@ -62,7 +62,7 @@ classdef AN4_NoiseAnalysis < PostProcess
             y_data = {{radio_acorr(2,:),radio_acorr(1,:)}};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Time [h]'},...
                 'label_y',{'auto correlation'},'names',{{'range rate','range'}},...
-                'isscatter',true,'lim_y',{[-0.05 0.05]},'title',title,...
+                'isscatter',true,'lim_y',{[-0.15 0.15]},'title',title,...
                 'WHratio',WHratio,'percTextWidth',percTextWidth);
 
             % FFT
@@ -83,12 +83,14 @@ classdef AN4_NoiseAnalysis < PostProcess
 
             % Beacon
             title = 'AN4_FFT_beacon';
+            WHratio = 1.3;
+            percTextWidth = 0.6;
             x_data = {repmat({freq_xb},3,1)};
             y_data = {{mag_xb(:,1),mag_xb(:,2),mag_xb(:,3)}};
             obj.plot_2D('x_data',x_data,'y_data',y_data,'label_x',{'Frequency [Hz]'},...
                 'label_y',{'Magnitude'},'names',{{'$e_x$ beacon spacecraft',...
                 '$e_y$ beacon spacecraft','$e_z$ beacon spacecraft'}},...
-                'lim_x',{[0 5.5e-4]}, 'lim_y',{[0 0.025]},...
+                'lim_x',{[0 5.5e-4]}, 'lim_y',{[0 0.03]},...
                 'title',title,'WHratio',WHratio,'percTextWidth',percTextWidth);
         end
 

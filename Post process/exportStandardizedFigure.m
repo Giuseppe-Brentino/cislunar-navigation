@@ -161,7 +161,7 @@ markers = {
     '^'
     'x'};
 
-linestylesList = {'-';'-';'-.';':';'--';};
+linestylesList = {'-';'-.';':';'--'};
 
 nColors = length(colors);
 nMarkers = length(markers);

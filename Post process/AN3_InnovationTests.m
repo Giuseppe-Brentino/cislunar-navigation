@@ -106,17 +106,17 @@ classdef AN3_InnovationTests < PostProcess
             title = 'AN3_NMI_st';
             WHratio = 2;
             percTextWidth = 0.8;
-            obj.plot_histogram('data',data,'sub_cols',3,'sub_rows',1,'Nbins',20,...
+            obj.plot_histogram('data',data,'sub_cols',3,'sub_rows',1,'Nbins',200,...
                 'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',WHratio,...
-                'percTextWidth',percTextWidth);
+                'percTextWidth',percTextWidth,'lim_x',{[-0.5 0.5],[-0.5 0.5],[-1.2 1.2]});
 
             % Plot NMI radio
             data = {{aNMI.radio.Data(1,:)},{aNMI.radio.Data(2,:)}};
             label_x = {{'range'},{'range rate'},};
             title = 'AN3_NMI_radio';
-            obj.plot_histogram('data',data,'sub_cols',2,'sub_rows',1,'Nbins',20,...
+            obj.plot_histogram('data',data,'sub_cols',2,'sub_rows',1,'Nbins',200,...
                 'fit_curve','Normal','label_x',label_x,'title',title,'WHratio',WHratio,...
-                'percTextWidth',percTextWidth);
+                'percTextWidth',percTextWidth,'lim_x',{[-0.5 0.5],[-0.5 0.5]});
 
 
             %% Write text file

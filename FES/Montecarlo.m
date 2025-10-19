@@ -22,7 +22,7 @@ parpool(poolsize);
 
 %% Define number of simulations and batches
 
-N_sim = 3;
+N_sim = 100;
 N_remaining = N_sim;
 N_batches = ceil(N_sim/poolsize);
 
@@ -118,7 +118,7 @@ for i = 1:N_batches
 
         % Normalized Mean Estimation Error
         if ismember('aNMEE',who(data_file))
-            data_file.aNMEE = data_file.aNMEE + simulation(j).aNMEE.Data;
+            data_file.aNMEE = data_file.aNMEE + simulation(j).NMEE.Data;
         else
             data_file.aNMEE = simulation(j).NMEE.Data;
         end
